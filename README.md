@@ -1,9 +1,4 @@
-﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title>关于本教程</title>
-</head>
-<body style="font:bold;font-size:large;">
+﻿<body style="font:bold;font-size:large;">
     <h1>关于本教程 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
     <p>本教程由<u><b><a href="http://blog.wysaid.org/" target="_blank">wysaid</a></b></u>编写。</p>
     <p>闲来无事所写，希望对于对webgl感兴趣的你有一点点帮助或者说勾起你的兴趣。</p>
