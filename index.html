@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>WebGL Simple Lesson - by wysaid</title>
+    <script type="text/javascript">
+        var gLessonCnt = 10;
+        var gFrameHeight = "5000px";
+    </script>
+</head>
+<body>
+    <div style="top:0px;left:0px;width:250px;border:groove;margin:20px auto auto 10px;" id="lessonView">
+        <h1>WebGL Simple Lessons.</h1>
+        <p>(from <a href ="http://blog.wysaid.org/" target="_blank">http://blog.wysaid.org/</a>)</p>
+        <script type="text/javascript">
+            var lessonObj = document.getElementById("lessonView");
+            for(var i = 1; i <= gLessonCnt; ++i)
+            {
+                var item = document.createElement("p");
+                var text = "<h2><a href = './Lesson" + i + "/index.html' target='lessons'>Lesson " + i + "</a></h2>"
+                item.setAttribute("style", "text-align:left;background-color: #abcdef; margin 10px;");
+                item.innerHTML = text;
+                lessonObj.appendChild(item);
+            }
+        </script>
+    </div>
+    <div style="top:0px;left:0px;position:absolute; width:800px;height:700px; border:groove;margin:20px auto auto 300px; background-color:#d0d0d0" id="itemView">
+        <script type="text/javascript">
+            var itemObj = document.getElementById("itemView");
+            itemObj.style.maxHeight = gFrameHeight;
+        </script>
+        <iframe src="README.html" style="border:none;width:100%;height:100%;" name="lessons">
+
+        </iframe>
+    </div>
+</body>
+</html>
