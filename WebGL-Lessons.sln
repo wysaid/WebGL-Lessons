@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BB467242-7E58-4A90-AE67-8DC2CBEB3E10}"
 	ProjectSection(SolutionItems) = preProject
 		index.html = index.html
+		README.html = README.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lesson 01", "Lesson 01", "{E8B1EC7E-DEC6-412A-B032-C1241FDC1243}"
