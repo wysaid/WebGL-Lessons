@@ -1,12 +1,364 @@
-﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title>Lesson 1</title>
+<meta charset="utf-8" />
+<title>Lesson 1</title>
+<style>
+.noborder{border:none;background-color:#999;width:300px;}
+.divWithCanvas{background-color:#fff;width:100%;height:240px;}
+</style>
 </head>
-<body>
-    <h1>WebGL simple lesson 1 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<body style="font-family:微软雅黑;">
+<h1>第一话，准备工作 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
 
+<h3>第一步</h3>
+<p>观看本教程时，请先确保自己有一定的编程基础，我不会给你讲什么javascript的基础语法的。</p>
+<p>但鉴于一般学编程的人不一定懂网页页面设计，我会附带少量DIV,CSS这方面必备的知识。</p>
+<p>
+那么，废话不多说，开始吧。做一件事千万不能着急，磨刀不误砍柴工这个道理相信大家都懂。
+</p>
+<p> 做一件事之前先做<b>充足/一定/少量</b>是非常有必要的。比如WebGL做出来的东西肯定是显示在图形界面上的，而不是一个只有功能的控制台程序，那么我们首先应该准备的就是一个简单优雅的界面。</p>
+<p>需要了解的知识(为了便于显示，我会给所有的div元素加上边框):div标签是网页设计里面用得非常多的，用于控制网页显示的元素。我们也将用到它来控制显示的界面，包括位置、大小以及可能会处理的鼠标事件等等。此外，我们还需要一个按钮，来点击以运行出结果。</p>
+<p>如下：</p>
+<div class="noborder"><p><div class="divWithCanvas"></div><br>
+<input type="button" value = "run code" title="运行代码" onclick="alert('别点了，这里还没好呢')"></p></div>
+<h3>第二步</h3>
+<p>本教程为WebGL教程，所以，现在必须引入canvas，你可能知道，从canvas里面创建名叫"2d"的上下文进行绘图。也就是大家所乐道HTML5方式，但是WebGL使用的方式为"experimental-webgl" 或者 "webgl"， 如果后者创建不成功，那么请试试前者，本教程使用前者。</p>
+<h4>请不要用爪机观看本教程，适当的动手有助于进步。以及，你必须先安装一个支持WebGL的浏览器(IE11+, chrome, firefox, opera等)</h4>
+<p>为了便于控制，我们将canvas元素写在刚才的div里面:</p>
+<div class="noborder"><p><div class="divWithCanvas">
+<canvas id="webglView0" style="width:100%;height:100%"></canvas>
+</div><br>
+<script type="text/javascript">
+function run()
+{
+    var canvas=document.getElementById('webglView0');
+	var ctx=canvas.getContext('2d');
+	ctx.fillStyle='#00ff00';
+	ctx.fillRect(0,0, 300, 240);
+	ctx.fillStyle='#ff0000';
+	ctx.fillRect(Math.random()*50,Math.random()*40,Math.random()*100+50,Math.random()*100+50);
+}
+</script>
+<input type="button" value = "run code" title="运行代码" onclick="run()"></p></div>
+<p>也许你看不出来canvas已经写进去了，那么你可以试着多点几下上面的run，我将用html5方式在上面的canvas上画出一个红色矩形</p>
+<h3>第三步</h3>
+<p>前面说了半天，还没真正说到WebGL本身。那么经过上面两小节的描述，现在进入我们的第一个WebGL小程序: hello webgl</p>
+<p>首先，你需要初始化webgl，以获得一个上下文，让浏览器知道你想绘图到什么地方。代码类似于这样：</p>
+<pre>
+var webgl = null;
+function webglInit() {
+    var myCanvasObject = document.getElementById("webglView"); //此处的webglView为你的canvas的id
+	var myDivObject = document.getElementById("containerView"); //此处的containerView为你的canvas的父div元素id
+    webgl = myCanvasObject.getContext("experimental-webgl");
+	if(webgl == null)
+		alert("你的浏览器不支持webgl");
+    webgl.viewport(0, 0, myDivObject.clientWidth, myDivObject.clientHeight);//千万注意，参见下面说明。
+}
+</pre>
+<script type="text/javascript">
+var webgl = null;
+function webglInit() {
+    var myCanvasObject = document.getElementById("webglView"); //此处的webglView为你的canvas的id
+	var myDivObject = document.getElementById("containerView"); //此处的containerView为你的canvas的父div元素id
+    webgl = myCanvasObject.getContext("experimental-webgl");
+	if(webgl == null)
+		alert("你的浏览器不支持webgl");
+	myCanvasObject.width = myDivObject.clientWidth; //千万注意，参见下面说明。
+	myCanvasObject.height = myDivObject.clientHeight; //同上
+    webgl.viewport(0, 0, myDivObject.clientWidth, myDivObject.clientHeight);//同上
+}
+</script>
+<p>千万注意上面注释部分那一句，viewport设置的宽高是div的宽高，而不是canvas的，也许你想知道为什么，那么我解释一下：在设计中，你不一定想让canvas具有固定的大小，所以你可能用css控制了元素随着浏览器窗口的变化而变动，但是canvas的宽高属性是独立出来的，不受style控制，即便根据父元素改变了大小，直接获取的宽高值也不对。这里有两种解决办法，一是像上面那样写，二是使用js代码响应每一次窗口大小的变动，把canvas对象的width和height重设。后面如果涉及到复杂一点的布局的时候再讨论。</p>
+<p>这里获取到了webgl对象，接下来就要创建Shader对象了。为了节省篇幅，后面的就不写容错代码，只写功能了:</p>
+<pre>
+var vertexShaderObject = null;
+var fragmentShaderObject = null;
+
+function shaderInitWithVertexAndFragmentShader(vsh, fsh) {
+
+    webgl.shaderSource(vertexShaderObject, vsh);
+    webgl.shaderSource(fragmentShaderObject, fsh);
+    webgl.compileShader(vertexShaderObject);
+    webgl.compileShader(fragmentShaderObject);
+}
+</pre>
+<script type="text/javascript">
+var vertexShaderObject = null;
+var fragmentShaderObject = null;
+
+function shaderInitWithVertexAndFragmentShader(vsh, fsh) {
+	vertexShaderObject = webgl.createShader(webgl.VERTEX_SHADER);
+    fragmentShaderObject = webgl.createShader(webgl.FRAGMENT_SHADER);
+    webgl.shaderSource(vertexShaderObject, vsh);
+    webgl.shaderSource(fragmentShaderObject, fsh);
+    webgl.compileShader(vertexShaderObject);
+    webgl.compileShader(fragmentShaderObject);
+	if (!webgl.getShaderParameter(vertexShaderObject, webgl.COMPILE_STATUS)) { alert(webgl.getShaderInfoLog(vertexShaderObject) + "in vertex shader"); return; }
+    if (!webgl.getShaderParameter(fragmentShaderObject, webgl.COMPILE_STATUS)) { alert(webgl.getShaderInfoLog(fragmentShaderObject) + "in fragment shader"); return; }
+}
+</script>
+<p>上面这一步获取到了Shader Object对象，那么，再接下来当然是ShaderProgram了，有了program可就差不多大功告成了。</p>
+<pre>
+var programObject;
+var v4PositionIndex;
+function initShaderProgram(positionName) {
+    programObject = webgl.createProgram();
+    webgl.attachShader(programObject, vertexShaderObject);
+    webgl.attachShader(programObject, fragmentShaderObject);
+    webgl.bindAttribLocation(programObject, v4PositionIndex, positionName);
+    webgl.linkProgram(programObject);
+	if (!webgl.getProgramParameter(programObject, webgl.LINK_STATUS)) {
+        alert(webgl.getProgramInfoLog(programObject));
+        return;
+    }
+    webgl.useProgram(programObject);
+}
+</pre>
+<script type="text/javascript">
+var programObject;
+var v4PositionIndex;
+function initShaderProgram(positionName) {
+    programObject = webgl.createProgram();
+    webgl.attachShader(programObject, vertexShaderObject);
+    webgl.attachShader(programObject, fragmentShaderObject);
+    webgl.bindAttribLocation(programObject, v4PositionIndex, positionName);
+    webgl.linkProgram(programObject);
+	if (!webgl.getProgramParameter(programObject, webgl.LINK_STATUS)) {
+        alert(webgl.getProgramInfoLog(programObject));
+        return;
+    }
+    webgl.useProgram(programObject);
+}
+</script>
+<p>是的，代码就这么简单，我们快要看到我们的第一个webgl程序了。写了一堆辅助函数，下面就要调用它们了，但是调用就要直接写吗？不，我说了，磨刀不误砍柴工。初学一样东西，把准备工作做足，后面才方便继续。因为我们的demo是随着我们的努力不断进步了。不要说学到下一章我们就把第一章的内容丢掉这样的话。我们将在此基础上不断完善，所以这个demo的功能必须写得稍微分开一点。</p>
+<p>接下来就是一步完成绘制的函数，加上它，就相当于我们的第一个webgl程序了：</p>
+<pre>
+function renderWebGL(vertices, vSize, vLen, vsh, fsh, positionName){
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram(positionName);
+
+	var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+	webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, vSize, webgl.FLOAT, false, 0, 0);
+
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, vLen);
+}
+</pre>
+<script type="text/javascript">
+function renderWebGL(vertices, vSize, vLen, vsh, fsh, positionName){
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram(positionName);
+
+	var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+	webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, vSize, webgl.FLOAT, false, 0, 0);
+
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, vLen);
+}
+</script>
+<h3>第四步</h3>
+<p>虽然我说我们的第一个WebGL程序已经写完了，但是不是还感觉少了写什么？对，那就是显示。上面所有的代码相当于对WebGL的一个简单封装，我们要让它显示点什么东西出来才对。让我们的应用我们的封装吧：</p>
+<pre>
+//使用上面封装的函数在绘制一个渐变色三角形, 由于前面封装的功劳，我们现在可以绘制很多东西而只需要提供shader文本代码和顶点就行了。
+function renderTriangle()
+{
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"	textureCoordinate = position.xy + 0.5;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);" +
+		"}";
+	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+
+function renderRectangle()
+{
+	var vertices = 
+	[
+		0.5, 0.5,
+		0.5, -0.5,
+		-0.5, 0.5,
+		-0.5, -0.5
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"	textureCoordinate = position.xy + 0.5;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);" +
+		"}";
+	
+	renderWebGL(vertices, 2, 4, vsh, fsh, "position");
+}
+
+function renderCircle()
+{
+	var vertices = 
+	[
+		1.0, 1.0,
+		1.0, -1.0,
+		-1.0, 1.0,
+		-1.0, -1.0
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"	textureCoordinate = position.xy;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	if(length(textureCoordinate) < 0.5)" +
+		"		gl_FragColor = vec4(textureCoordinate + 0.5, 0.0, 1.0);" +
+		"	else gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);" +
+		"}";	
+	renderWebGL(vertices, 2, 4, vsh, fsh, "position");
+}
+</pre>
+<script type="text/javascript">
+
+//使用上面封装的函数在绘制一个渐变色三角形, 由于前面封装的功劳，我们现在可以绘制很多东西而只需要提供shader文本代码和顶点就行了。
+function renderTriangle()
+{
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"	textureCoordinate = position.xy + 0.5;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);" +
+		"}";
+	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+
+function renderRectangle()
+{
+	var vertices = 
+	[
+		0.5, 0.5,
+		0.5, -0.5,
+		-0.5, 0.5,
+		-0.5, -0.5
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"	textureCoordinate = position.xy + 0.5;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);" +
+		"}";
+	
+	renderWebGL(vertices, 2, 4, vsh, fsh, "position");
+}
+
+function renderCircle()
+{
+	var vertices = 
+	[
+		1.0, 1.0,
+		1.0, -1.0,
+		-1.0, 1.0,
+		-1.0, -1.0
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"	textureCoordinate = position.xy;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"varying vec2 textureCoordinate;" +
+		"void main()" +
+		"{" +
+		"	if(length(textureCoordinate) < 0.5)" +
+		"		gl_FragColor = vec4(textureCoordinate + 0.5, 0.0, 1.0);" +
+		"	else gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);" +
+		"}";	
+	renderWebGL(vertices, 2, 4, vsh, fsh, "position");
+}
+
+</script>
+<div class="noborder"><p>
+<div class="divWithCanvas" id="containerView"><canvas id="webglView" style="width:100%;height:100%"></canvas></div><br>
+
+<input type="button" value = "run triangle" title="绘制三角形" onclick="renderTriangle()">
+<input type="button" value = "run rectangle" title="绘制矩形" onclick="renderRectangle()">
+<input type="button" value = "run circle" title="绘制圆形" onclick="renderCircle()">
+
+</p></div>
+
+<p>好的，第一期教程到此为止，请关注lesson 2。系列教程地址:</p>
 </body>
 </html>
