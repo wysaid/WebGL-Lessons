@@ -154,20 +154,38 @@ function renderTriangle1(){
 function renderTriangle2(){
 	var vertices = 
 	[
-		0.0, 0.5,
-		-0.5, -0.5,
-		0.5, -0.5,
+		0.5, 0.5,
+		-0.5, 0.5,
+		0, -0.5,
 	];
-	var vsh = requestURLPlainText("http://webgl-lesson.wysaid.org/Lesson2/vsh_lesson2.txt");
-	var fsh = requestURLPlainText("http://webgl-lesson.wysaid.org/Lesson2/fsh_lesson2.txt");	
+	var vsh = requestURLPlainText("vsh_lesson2.txt");
+	var fsh = requestURLPlainText("fsh_lesson2.txt");	
 	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
 }
 
 function clearCanvas(){
-    var canvas=document.getElementById('webglView');
-	var ctx=canvas.getContext('2d');
-	ctx.fillStyle='#000000';
-	ctx.fillRect(0,0, 300, 240);
+	var vertices = 
+	[
+		1.0, 1.0,
+		1.0, -1.0,
+		-1.0, 1.0,
+		-1.0, -1.0
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"void main()" +
+		"{" +
+		"	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);" +
+		"}";
+	
+	renderWebGL(vertices, 2, 4, vsh, fsh, "position");
 }
 
 </script><p>
@@ -176,9 +194,9 @@ function clearCanvas(){
 <input type="button" value = "run method2" title="绘制三角形" onclick="renderTriangle2()">
 <input type="button" value = "clear" title="清屏" onclick="clearCanvas()">
 </p></div>
-
+<p>为了让读者看出两者都运行成功了，我特地把第二个三角形反了个方向。lesson2只实现了三角形，如果你是初学者，希望你能按照本章封装的方法，自己把矩形跟圆形都改成这种方式实现。</p>
 <p>好的，第二期教程到此为止，请关注lesson 3。系列教程地址:webgl-lesson.wysaid.org</p>
-<script type="text/javascript" src="http://webgl-lesson.wysaid.org/Lesson2/functions_lesson_2.js">
+<script type="text/javascript" src="functions_lesson_2.js">
 </script>
 <script id="vsh_lesson2" type="x-shader/x-vertex">
 precision mediump float;
