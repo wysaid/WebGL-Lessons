@@ -1,12 +1,46 @@
-﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title>Lesson 2</title>
+<meta charset="utf-8" />
+<title>Lesson 2</title>
+<style>
+.noborder{border:none;background-color:#999;width:300px;}
+.divWithCanvas{background-color:#fff;width:100%;height:240px;}
+</style>
 </head>
-<body>
-    <h1>WebGL simple lesson 2 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<body style="font-family:微软雅黑;">
+<h1>第二话，动态加载shader (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<p>上一张封装了基本的WebGL功能，包括初始化、创建着色器对象、创建&编译着色器程序然后应用着色器渲染的简单范例。这里强调一下本教程定位：在观看本教程时，作者会假设你对于OpenGL Shader Language有一定理解，所以不会去解释简单的shader代码的。如果您对GLSL一无所知，建议你先去了解。</p>
+<p>首先，回顾一下上期内容。在lesson 1，我们集成了WebGL的一些基本功能，然后用它制作了一个小demo。 由于讲得比较仓促，而且后期有些修改校正，完整代码请点击下面的按钮:</p>
 
+<div>
+<script>
+function requestURLPlainText(url) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", url, false);
+    xmlHttp.send();
+    return xmlHttp.responseText;
+}
+
+function openTextWindow(url)
+{
+	var inputImage = document.getElementById("inputImage");
+	var openWindow = window.open("", "_blank", "status=no, scrollbars=yes, resizable=yes");
+	openWindow.document.write(requestURLPlainText(url));
+}
+</script>
+<input type="button" value = "get code" title="查看代码" onclick="window.open('demo_lesson1.txt', '_blank', 'toolbar=no,scrollbars=yes, resizable=yes, location=no, status=no')">
+<input type="button" value = "run code" title="查看程序" onclick="window.open('demo_lesson1.html', '_blank', 'toolbar=no, width=600, height=500, location=no')">
+</div>
+
+<h3>那么，开始第二话吧！</h3>
+<p>上次我们封装出一个叫做"renderWebGL(verticesArray, vertexSize, VertexLength, vsh, fsh, vertexIndex)"的函数，参数有六个，<br><b>第一个为所需绘制的图形的顶点数组。<br>第二个参数分别为每个顶点的数据大小，如果为float，那么就是1，如果是vec2，那么就是2。（不要问我传整数怎么办，我拒绝回答无聊的问题@_@）。<br>第三个为顶点个数。<br>第四个第五个分别是顶点着色器代码与片元着色器代码。<br>第六个是顶点着色器里面待使用的顶点的变量名。</b></p>
+
+
+
+
+
+
+
+<p>好的，第二期教程到此为止，请关注lesson 3。系列教程地址:webgl-lesson.wysaid.org</p>
 </body>
 </html>
