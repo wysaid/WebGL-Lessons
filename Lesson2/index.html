@@ -118,22 +118,67 @@ function renderTriangle()
 <p>然后通过如下代码方式访问：</p>
 <pre>
 //这下是不是跟上面的方法差不多？只不过封装形式不一样罢了。
-function renderTriangle()
-{
+function renderTriangle(){
 	var vertices = 
 	[
 		0.0, 0.5,
 		-0.5, -0.5,
 		0.5, -0.5,
 	];
-	var vsh = requestURLPlainText("vsh_lesson2");
-	var fsh = requestURLPlainText("fsh_lesson2");	
+	var vsh = requestURLPlainText("vsh_lesson2.js");
+	var fsh = requestURLPlainText("fsh_lesson2.js");	
 	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
 }
 </pre>
 
+<p>嗯，本话要讲的差不多就这些，下面让我们运行一下本小节成果吧！</p>
+<style>
+.noborder{border:groove;background-color:#999;width:300px;}
+.divWithCanvas{background-color:#fff;width:100%;height:240px;}
+</style>
+
+<div class="noborder">
+<script type="text/javascript">
+function renderTriangle1(){
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = getScriptTextByID("vsh_lesson2");
+	var fsh = getScriptTextByID("fsh_lesson2");	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+
+function renderTriangle2(){
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = requestURLPlainText("http://webgl-lesson.wysaid.org/Lesson2/vsh_lesson2.js");
+	var fsh = requestURLPlainText("http://webgl-lesson.wysaid.org/Lesson2/fsh_lesson2.js");	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+
+function clearCanvas(){
+    var canvas=document.getElementById('webglView');
+	var ctx=canvas.getContext('2d');
+	ctx.fillStyle='#000000';
+	ctx.fillRect(0,0, 300, 240);
+}
+
+</script><p>
+<div class="divWithCanvas" id="containerView"><canvas id="webglView" style="width:100%;height:100%"></canvas></div><br>
+<input type="button" value = "run method1" title="绘制三角形" onclick="renderTriangle1()">
+<input type="button" value = "run method2" title="绘制三角形" onclick="renderTriangle2()">
+<input type="button" value = "clear" title="清屏" onclick="clearCanvas()">
+</p></div>
+
 <p>好的，第二期教程到此为止，请关注lesson 3。系列教程地址:webgl-lesson.wysaid.org</p>
-<script type="text/javascript" src="functions_lesson_2.js">
+<script type="text/javascript" src="http://webgl-lesson.wysaid.org/Lesson2/functions_lesson_2.js">
 </script>
 <script id="vsh_lesson2" type="x-shader/x-vertex">
 precision mediump float;
@@ -152,20 +197,6 @@ varying vec2 textureCoordinate;
 void main()
 {
 	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);
-}
-</script>
-<script>
-function renderTriangle()
-{
-	var vertices = 
-	[
-		0.0, 0.5,
-		-0.5, -0.5,
-		0.5, -0.5,
-	];
-	var vsh = requestURLPlainText("vsh_lesson2");
-	var fsh = requestURLPlainText("fsh_lesson2");	
-	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
 }
 </script>
 </body>
