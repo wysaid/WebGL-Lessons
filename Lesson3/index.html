@@ -194,7 +194,8 @@ function renderOrigin(){
 
     //在这里把我们的纹理交给WebGL:
     var texObj = createTextureByImgID("vocaloid");
-    webgl.activeTexture(webgl.TEXTURE0); // 为了安全起见，在使用之前请绑定好纹理ID。虽然在createTextureByImgID函数里面已经绑定了，但是，那并不是必须的，这里才是必须的。
+	// 为了安全起见，在使用之前请绑定好纹理ID。
+    webgl.activeTexture(webgl.TEXTURE0); 
     var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
     webgl.uniform1i(uniform, 0);
 
