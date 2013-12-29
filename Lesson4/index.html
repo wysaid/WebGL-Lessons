@@ -148,7 +148,84 @@ void main()
 </div>
 <h2>然后是，修改demo代码，给我们的demo加上一个log窗口</h2>
 <p>log窗口有很多选择，只要是一个可以显示文字的标签就够了，所以万能的div当然是可以的。不过既然提到了文字，那么还是用专门实现文字的textarea显得更科学。</p>
-直接上代码吧：
+<p>不罗嗦，直接上代码吧：<p>
+<pre style="border:groove">
+&lt;!-- 创建一个id为logBox的texarea标签，并设置一下它的显示方式，
+加上一句启动后默认的话，比如WebGL 正在初始化之类的。 --&gt;
+&lt;div style="border:groove;background-color:#ddd"&gt;&lt;textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px"&gt;WebGL is initializing...
+&lt;/textarea&gt;
+&lt;input type="button" value = "Appen somthing" title="添加一句话" onclick="appendLog('This is lesson-4. By wysaid')"&gt;
+&lt;input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"&gt;
+&lt;input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"&gt;
+&lt;input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()"&gt;
+&lt;/div&gt;
+
+&lt;script type="text/javascript"&gt;
+//写几个控制log窗口的辅助函数。
+//如果你喜欢，也可以把logBox变量写为全局的，不过这里不是很有必要。
+function appendLog(logString) {
+	var logBox = document.getElementById("logBox");
+	logBox.value += logString + "\n";
+	//让log文字在文字超过可显示区域时自动滚动到最底部。
+	logTextArea.scrollTop = logTextArea.scrollHeight;
+}
+
+function clearLogbox() {
+	var logBox = document.getElementById("logBox");
+	logBox.value = "";
+}
+
+function maximizeLogbox() {
+	var logBox = document.getElementById("logBox");
+	logBox.style.height = logBox.scrollHeight + 20 + "px";
+}
+
+function restoreLogbox() {
+	var logBox = document.getElementById("logBox");
+	//后面的200px取你自己最初设定的值，其实按百分比设定是最好的，
+	//不过写百分比的话，放在本教程里面页面就乱了，你可以自己尝试。
+	logBox.style.height = "200px";
+}
+</pre>
+<!-- 创建一个id为logBox的texarea标签，并设置一下它的显示方式，加上一句启动后默认的话，比如WebGL 正在初始化之类的。 -->
+<div style="border:groove;background-color:#ddd"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
+</textarea>
+<input type="button" value = "Appen somthing" title="添加一句话" onclick="appendLog('This is lesson-4. By wysaid')">
+<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()">
+<input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()">
+<input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+</div>
+
+<script type="text/javascript">
+
+
+//如果你喜欢，也可以把logBox变量写为全局的，不过不是很有必要。
+function appendLog(logString) {
+	var logBox = document.getElementById("logBox");
+	logBox.value += logString + "\n";
+	//让log文字在文字超过可显示区域时自动滚动到最底部。
+	logTextArea.scrollTop = logTextArea.scrollHeight;
+}
+
+function clearLogbox() {
+	var logBox = document.getElementById("logBox");
+	logBox.value = "";
+}
+
+function maximizeLogbox() {
+	var logBox = document.getElementById("logBox");
+	logBox.style.height = logBox.scrollHeight + 20 + "px";
+}
+
+function restoreLogbox() {
+	var logBox = document.getElementById("logBox");
+	//后面的200px取你自己最初设定的值，其实按百分比设定是最好的，
+	//不过写百分比的话，放在本教程里面页面就乱了，你可以自己尝试。
+	logBox.style.height = "200px";
+}
+</script>
+
+<p>好的，本期差不多就这么多了，附上一个实现好的demo吧，点击下面的按钮打开：</p>
 
 <p>好的，第四期教程到此为止，请关注lesson 5。系列教程地址:webgl-lesson.wysaid.org</p>
 </body>
