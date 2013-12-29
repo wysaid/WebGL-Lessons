@@ -87,7 +87,7 @@ void main()
     gl_FragColor = texture2D(inputImageTexture, tmp);
 }
 </script>
-<script src="functions_lesson_3.js"></script>
+<script src="functions_lesson_4.js"></script>
 </head>
 <body style="font-family:微软雅黑;">
 <h1>第四话，学会使用浏览器调试以及给WebGL代码增加日志(<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
@@ -167,7 +167,7 @@ function appendLog(logString) {
 	var logBox = document.getElementById("logBox");
 	logBox.value += logString + "\n";
 	//让log文字在文字超过可显示区域时自动滚动到最底部。
-	logTextArea.scrollTop = logTextArea.scrollHeight;
+	logBox.scrollTop = logBox.scrollHeight;
 }
 
 function clearLogbox() {
@@ -187,43 +187,10 @@ function restoreLogbox() {
 	logBox.style.height = "200px";
 }
 </pre>
-<!-- 创建一个id为logBox的texarea标签，并设置一下它的显示方式，加上一句启动后默认的话，比如WebGL 正在初始化之类的。 -->
 <div style="border:groove;background-color:#ddd"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
 </textarea>
-<input type="button" value = "Appen somthing" title="添加一句话" onclick="appendLog('This is lesson-4. By wysaid')">
-<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()">
-<input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()">
-<input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+<input type="button" value = "Appen somthing" title="添加一句话" onclick="appendLog('This is lesson-4. By wysaid')"><input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"><input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"><input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
 </div>
-
-<script type="text/javascript">
-
-
-//如果你喜欢，也可以把logBox变量写为全局的，不过不是很有必要。
-function appendLog(logString) {
-	var logBox = document.getElementById("logBox");
-	logBox.value += logString + "\n";
-	//让log文字在文字超过可显示区域时自动滚动到最底部。
-	logTextArea.scrollTop = logTextArea.scrollHeight;
-}
-
-function clearLogbox() {
-	var logBox = document.getElementById("logBox");
-	logBox.value = "";
-}
-
-function maximizeLogbox() {
-	var logBox = document.getElementById("logBox");
-	logBox.style.height = logBox.scrollHeight + 20 + "px";
-}
-
-function restoreLogbox() {
-	var logBox = document.getElementById("logBox");
-	//后面的200px取你自己最初设定的值，其实按百分比设定是最好的，
-	//不过写百分比的话，放在本教程里面页面就乱了，你可以自己尝试。
-	logBox.style.height = "200px";
-}
-</script>
 
 <p>好的，本期差不多就这么多了，附上一个实现好的demo吧，点击下面的按钮打开：</p>
 

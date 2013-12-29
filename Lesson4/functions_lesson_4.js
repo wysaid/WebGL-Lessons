@@ -10,7 +10,11 @@ function webglInit() {
 	var myDivObject = document.getElementById("containerView"); //此处的containerView为你的canvas的父div元素id
     webgl = myCanvasObject.getContext("experimental-webgl");
 	if(webgl == null)
-		alert("你的浏览器不支持webgl");
+	{
+		appendLog("你的浏览器不支持webgl");
+		return;
+	}
+	
 	myCanvasObject.width = myDivObject.clientWidth; //千万注意，参见下面说明。
 	myCanvasObject.height = myDivObject.clientHeight; //同上
     webgl.viewport(0, 0, myDivObject.clientWidth, myDivObject.clientHeight);//同上
@@ -19,12 +23,14 @@ function webglInit() {
 function shaderInitWithVertexAndFragmentShader(vsh, fsh) {
 	vertexShaderObject = webgl.createShader(webgl.VERTEX_SHADER);
     fragmentShaderObject = webgl.createShader(webgl.FRAGMENT_SHADER);
+	appendLog("The Vertex Shader is loaded:\n" + vsh);
     webgl.shaderSource(vertexShaderObject, vsh);
+	appendLog("The Fragment Shader is loaded:\n" + fsh);
     webgl.shaderSource(fragmentShaderObject, fsh);
     webgl.compileShader(vertexShaderObject);
     webgl.compileShader(fragmentShaderObject);
-	if (!webgl.getShaderParameter(vertexShaderObject, webgl.COMPILE_STATUS)) { alert(webgl.getShaderInfoLog(vertexShaderObject) + "in vertex shader"); return; }
-    if (!webgl.getShaderParameter(fragmentShaderObject, webgl.COMPILE_STATUS)) { alert(webgl.getShaderInfoLog(fragmentShaderObject) + "in fragment shader"); return; }
+	if (!webgl.getShaderParameter(vertexShaderObject, webgl.COMPILE_STATUS)) { appendLog(webgl.getShaderInfoLog(vertexShaderObject) + "in vertex shader"); return; }
+    if (!webgl.getShaderParameter(fragmentShaderObject, webgl.COMPILE_STATUS)) { appendLog(webgl.getShaderInfoLog(fragmentShaderObject) + "in fragment shader"); return; }
 }
 
 function initShaderProgram(positionName) {
@@ -34,7 +40,7 @@ function initShaderProgram(positionName) {
     webgl.bindAttribLocation(programObject, v4PositionIndex, positionName);
     webgl.linkProgram(programObject);
 	if (!webgl.getProgramParameter(programObject, webgl.LINK_STATUS)) {
-        alert(webgl.getProgramInfoLog(programObject));
+        appendLog(webgl.getProgramInfoLog(programObject));
         return;
     }
     webgl.useProgram(programObject);
@@ -317,4 +323,29 @@ function renderWave(){
     itv.uniformAngle = webgl.getUniformLocation(programObject, "angle");
 	itv.motion = 0.0;
     itv.interval = setInterval("redrawWave()", 10);
+}
+
+//如果你喜欢，也可以把logBox变量写为全局的，不过不是很有必要。
+function appendLog(logString) {
+	var logBox = document.getElementById("logBox");
+	logBox.value += logString + "\n";
+	//让log文字在文字超过可显示区域时自动滚动到最底部。
+	logBox.scrollTop = logBox.scrollHeight;
+}
+
+function clearLogbox() {
+	var logBox = document.getElementById("logBox");
+	logBox.value = "";
+}
+
+function maximizeLogbox() {
+	var logBox = document.getElementById("logBox");
+	logBox.style.height = logBox.scrollHeight + 20 + "px";
+}
+
+function restoreLogbox() {
+	var logBox = document.getElementById("logBox");
+	//后面的200px取你自己最初设定的值，其实按百分比设定是最好的，
+	//不过写百分比的话，放在本教程里面页面就乱了，你可以自己尝试。
+	logBox.style.height = "200px";
 }
