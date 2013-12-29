@@ -152,9 +152,12 @@ void main()
 <pre style="border:groove">
 &lt;!-- 创建一个id为logBox的texarea标签，并设置一下它的显示方式，
 加上一句启动后默认的话，比如WebGL 正在初始化之类的。 --&gt;
-&lt;div style="border:groove;background-color:#ddd"&gt;&lt;textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px"&gt;WebGL is initializing...
+&lt;div style="border:groove;background-color:#ddd"&gt;
+&lt;textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px"&gt;
+WebGL is initializing...
 &lt;/textarea&gt;
-&lt;input type="button" value = "Appen somthing" title="添加一句话" onclick="appendLog('This is lesson-4. By wysaid')"&gt;
+&lt;input type="button" value = "Appen somthing" title="添加一句话"
+onclick="appendLog('This is lesson-4. By wysaid')"&gt;
 &lt;input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"&gt;
 &lt;input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"&gt;
 &lt;input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()"&gt;
