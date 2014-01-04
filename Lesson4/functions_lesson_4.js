@@ -156,6 +156,7 @@ function renderOrigin(){
 	//在这里把我们的纹理交给WebGL:
 	var texObj = createTextureByImgID("vocaloid");
 	webgl.activeTexture(webgl.TEXTURE0); // 为了安全起见，在使用之前请绑定好纹理ID。虽然在createTextureByImgID函数里面已经绑定了，但是，那并不是必须的，这里才是必须的。
+	webgl.bindTexture(webgl.TEXTURE_2D, texObj);
     var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
     webgl.uniform1i(uniform, 0);
 
@@ -192,6 +193,7 @@ function renderInverse(){
 	var texObj = createTextureByImgID("vocaloid");
 	webgl.activeTexture(webgl.TEXTURE0); // 为了安全起见，在使用之前请绑定好纹理ID。虽然在createTextureByImgID函数里面已经绑定了，但是，那并不是必须的，这里才是必须的。
     var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+	webgl.bindTexture(webgl.TEXTURE_2D, texObj);
     webgl.uniform1i(uniform, 0);
 
     webgl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -227,6 +229,7 @@ function renderEmboss(){
 	var texObj = createTextureByImgID("vocaloid");
 	webgl.activeTexture(webgl.TEXTURE0); // 为了安全起见，在使用之前请绑定好纹理ID。虽然在createTextureByImgID函数里面已经绑定了，但是，那并不是必须的，这里才是必须的。
     var uniformTex = webgl.getUniformLocation(programObject, "inputImageTexture");
+	webgl.bindTexture(webgl.TEXTURE_2D, texObj);
     webgl.uniform1i(uniformTex, 0);
 	//由于浮雕效果需要知道采样步长，所以传递此参数给shader。
 	var uniformSteps = webgl.getUniformLocation(programObject, "steps");
@@ -265,6 +268,7 @@ function renderEdge(){
 	var texObj = createTextureByImgID("vocaloid");
 	webgl.activeTexture(webgl.TEXTURE0); // 为了安全起见，在使用之前请绑定好纹理ID。虽然在createTextureByImgID函数里面已经绑定了，但是，那并不是必须的，这里才是必须的。
     var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+	webgl.bindTexture(webgl.TEXTURE_2D, texObj);
     webgl.uniform1i(uniform, 0);
 	//由于边缘效果需要知道采样步长，所以传递此参数给shader。
 	var uniformSteps = webgl.getUniformLocation(programObject, "steps");
@@ -316,6 +320,7 @@ function renderWave(){
 	var texObj = createTextureByImgID("vocaloid");
 	webgl.activeTexture(webgl.TEXTURE0); // 为了安全起见，在使用之前请绑定好纹理ID。虽然在createTextureByImgID函数里面已经绑定了，但是，那并不是必须的，这里才是必须的。
     var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+	webgl.bindTexture(webgl.TEXTURE_2D, texObj);
     webgl.uniform1i(uniform, 0);
 
 	//wave效果需要使用motion和angle两个参数。
