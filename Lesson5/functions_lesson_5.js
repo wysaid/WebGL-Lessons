@@ -192,9 +192,9 @@ function renderPicture(cvRGB, cvR, cvG, cvB)
 	var cvDstR = cvR.concat();
 	var cvDstG = cvG.concat();
 	var cvDstB = cvB.concat();
-	mergeCurve(cvDstR, cvRGB, cvDstR);
-	mergeCurve(cvDstG, cvRGB, cvDstG);
-	mergeCurve(cvDstB, cvRGB, cvDstB);
+	mergeCurve(cvDstR, cvRGB, cvR);
+	mergeCurve(cvDstG, cvRGB, cvG);
+	mergeCurve(cvDstB, cvRGB, cvB);
 	var cvDst = new Array();
 	for(var i = 0; i != precision; ++i)
 	{
@@ -414,4 +414,5 @@ function drawTmpPoints(obj, event, index)
 	tmpPoints.sort(function(a, b){return a.x > b.x;});
 	genCurve(tmpPoints, currentCurve);
 	drawCurve(obj.children.item(0), index);
+	renderPicture(curveRGB, curveR, curveG, curveB);
 }
