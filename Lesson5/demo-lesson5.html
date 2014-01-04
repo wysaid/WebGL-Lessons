@@ -1,0 +1,101 @@
+﻿<html>
+<head><meta charset="utf-8"><title>demo - lesson 5 By wysaid</title>
+<script src="functions_lesson_5.js" type="text/javascript"></script>
+</head>
+
+<body>
+<style>
+.noborder{border:groove;background-color:#999;width:950px;position:relative;}
+.divWithCanvas{background-color:#fff;width:750px;height:450px;}
+.curveR {background-color:#000;position:absolute;left:750px;top:25%;width:200px;height:25%;border:groove;cursor:crosshair;}
+.curveG {background-color:#000;position:absolute;left:750px;top:50%;width:200px;height:25%;border:groove;cursor:crosshair;}
+.curveB {background-color:#000;position:absolute;left:750px;top:75%;width:200px;height:25%;border:groove;cursor:crosshair;}
+.curveRGB {background-color:#000;position:absolute;left:750px;top:0%;width:200px;height:25%;border:groove;cursor:crosshair;}
+</style>
+
+<div class="noborder">
+<div class="divWithCanvas" id="containerView">
+<canvas id="webglView" style="width:100%;height:100%"></canvas>
+</div>
+<div class="curveRGB" id="curveRGB" onmousedown="isRGBDown=true;" onmouseup="isRGBDown=false;pushBackPoints(this, event, 0)" onmousemove="if(isRGBDown){drawTmpPoints(this, event, 0);}"><canvas id="curveRGBView" style="width:200px;height:100%"></canvas></div>
+<div class="curveR" id="curveR" onmousedown="isRDown=true;" onmouseup="isRDown=false;pushBackPoints(this, event, 1)" onmousemove="if(isRDown){drawTmpPoints(this, event, 1);}"><canvas id="curveRView" style="width:200px;height:100%"></canvas></div>
+<div class="curveG" id="curveG" onmousedown="isGDown=true;" onmouseup="isGDown=false;pushBackPoints(this, event, 2)" onmousemove="if(isGDown){drawTmpPoints(this, event, 2);}"><canvas id="curveGView" style="width:200px;height:100%"></canvas></div>
+<div class="curveB" id="curveB" onmousedown="isBDown=true;" onmouseup="isBDown=false;pushBackPoints(this, event, 3)" onmousemove="if(isBDown){drawTmpPoints(this, event, 3);}"><canvas id="curveBView" style="width:200px;height:100%"></canvas></div>
+<script>
+function reSizeCanvas(father, obj)
+{
+	var fatherDiv = document.getElementById(father);
+	obj.width = fatherDiv.clientWidth;
+	obj.height = fatherDiv.clientHeight;
+	//drawCurve
+}
+var cvsRGB = document.getElementById("curveRGBView");
+var cvsR = document.getElementById("curveRView");
+var cvsG = document.getElementById("curveGView");
+var cvsB = document.getElementById("curveBView");
+reSizeCanvas("curveRGB", cvsRGB);
+reSizeCanvas("curveR", cvsR);
+reSizeCanvas("curveG", cvsG);
+reSizeCanvas("curveB", cvsB);
+drawCurve(cvsRGB, 0);
+drawCurve(cvsR, 1);
+drawCurve(cvsG, 2);
+drawCurve(cvsB, 3);
+</script>
+<br>
+<div style="border:groove;background-color:#ddd;width:750px"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
+</textarea><br>
+<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"><input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"><input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+</div>
+</div>
+<script>
+function imageOnload() {
+	webglInit();
+	if(webgl == null)
+	{
+		appendLog("See more: http://get.webgl.org/");
+		return;
+	}
+	appendLog("WebGL is supported! That's cool!\nHere are some infomation for your device:");
+	appendLog("The max renderbuffer size your browser support: " + 	webgl.getParameter(webgl.MAX_RENDERBUFFER_SIZE));
+	appendLog("The max texture image units your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_IMAGE_UNITS));
+	appendLog("The max texture size your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_SIZE));
+	appendLog("The max cube map texture size your browser support: " + webgl.getParameter(webgl.MAX_CUBE_MAP_TEXTURE_SIZE));
+	appendLog("The max viewport dims your browser support: " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[0] + " x " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[1]);
+}
+</script>
+
+<script id="vsh_lesson5" type="x-shader/x-vertex">
+attribute vec4 position;
+attribute vec4 inputTextureCoordinate;
+varying vec2 textureCoordinate;
+void main()
+{
+	gl_Position = position;
+	// 这是一种取巧的做法，强行把顶点坐标映射为纹理坐标，
+	// 但是仅适用于本章用到的刚好占满整个viewport的顶点哦。
+	textureCoordinate = vec2((position.x+1.0)/2.0, 1.0-(position.y+1.0)/2.0);
+}
+</script>
+
+<script id="fsh_lesson5" type="x-shader/x-fragment">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform sampler2D curveTexture;
+void main()
+{
+	vec3 src = texture2D(inputImageTexture, textureCoordinate).rgb;
+	src.r = texture2D(curveTexture, vec2(src.r, 0.0)).r;
+	src.g = texture2D(curveTexture, vec2(src.g, 0.0)).g;
+	src.b = texture2D(curveTexture, vec2(src.b, 0.0)).b;
+	gl_FragColor = vec4(src, 1.0);
+}
+</script>
+<div style="display:none"><img src="vocaloid.jpg" id="vocaloid" onload="imageOnload();appendLog('图像加载完毕，请使用鼠标点击拖动右侧黑框内的曲线');"></div>
+
+<div style="display:none">
+<script type="text/javascript" src="http://tajs.qq.com/stats?sId=23413950" charset="UTF-8"></script>
+</div>
+</body>
+</html>
