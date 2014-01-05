@@ -2,17 +2,126 @@
 <head>
 <meta charset="utf-8" />
 <title>Lesson 5</title>
-
+<style>
+.haveBorder{border:groove;}
+.noborder{border:groove;background-color:#999;width:600px;position:relative;}
+.divWithCanvas{background-color:#fff;width:100%;height:360px;}
+.curveR {background-color:#000;position:absolute;left:25%;top:0%;width:150px;height:150px;border:groove;cursor:crosshair;}
+.curveG {background-color:#000;position:absolute;left:50%;top:0%;width:150px;height:150px;border:groove;cursor:crosshair;}
+.curveB {background-color:#000;position:absolute;left:75%;top:0%;width:150px;height:150px;border:groove;cursor:crosshair;}
+.curveRGB {background-color:#000;position:absolute;left:0%;top:0%;width:150px;height:150px;border:groove;cursor:crosshair;}
+</style>
+<script src="functions_lesson_5.js" type="text/javascript"></script>
 </head>
 <body style="font-family:微软雅黑;">
-<h1> 第五话， 学会使用前面已有的知识做一些有用的东西出来。 </h1>
+<h1> 第五话， 如何使用前面已有的知识做一些有用的东西出来。 </h1>
 <p>上一期讲到了使用浏览器调试代码以及添加log窗口。相信你已经懂得如何在开发过程中打印log</p>
 <p>如果你去逛过关于编程的贴吧或者论坛，比如百度C语言/C++贴吧，那么你肯定可以看到很多初学者只学了控制台，甚至可以说对于输出的API只知道输出到控制台的printf或者cout.</p>
 <p>但是他们却可以利用仅有的那一点知识，发挥自己的创造力、激情以及勇气做出一个又一个的小作品，比如控制台小黑框版本的贪吃蛇、俄罗斯方块甚至文字RPG</p>
-<p>如果说看到这里你还是云里雾里的话，不妨停下来思考一下，发挥一下自己的创造力，不要以为现在还什么都不能做，我们现在学的</p>
+<p>如果说看到这里你还是云里雾里的话，不妨停下来思考一下，发挥一下自己的创造力，不要以为现在还什么都不能做，我们现在学的其实已经可以做很多东西。</p>
+<p>预告一下，下期将进入WebGL的3D。 本期将带领大家使用前面几节的简单知识做出一个至少说看起来不那么简单的东西。</p>
+<p>如果你认为本教程进度过快，那么，请务必放慢速度，好好地自己实现一下前面几话的demo</p>
+<p>经过本人校对，发现前面几话的代码存在着不足以及拼写错误等（人力有限），如果你是一个细节控，相信你已经发现了，如果有什么疑问请到上方标题处我的博客留言。</p>
 
-<h1>demo完成，待补充...</h1>
+<h3>好的，开始吧，这一节我们讲一讲使用WebGL进行图像处理</h3>
+<p>如果你会使用Photoshop，那么你一定知道,Photoshop提供了丰富多彩的图像调整功能，包括亮度对比度饱和度色阶曝光色相色彩平衡模糊锐化以及曲线调整等等</p>
+<p>作为一个<b>即将/正在</b>学习WebGL的程序员或者说爱好者，你们避免不了与各种算法打交道，所以我挑几个简单的描述一下。</p>
 
+<div class="haveBorder"><p><b>亮度调整</b>，最简单粗暴的方法就是直接给一个颜色的RGB值同时+N然后对越界的颜色比如某通道小于0(大于255)那么设置为0(设置为255)。最终结果为 <b><font color="red">(color+N)</font></b>当然也会有看起来更好的方法，比如将RGB转为HSL，然后增加L(luminance)值再转回RGB</p>
+</div>
+
+<div class="haveBorder"><p><b>对比度调整</b>，最简单粗暴的方法当然莫过于将RGB值同时减去它们值域的一半（设为N，如果单通道的范围是[0, 1]那么N就是0.5），得到值(color-N)，然后乘以对比度值contrast之后再加回来，结果就是：(color-N)*contrast + N (即color * contrast + (1 - contrast) * N，相当于GLSL里面的<b><font color="red">mix(N, color, contrast)</font></b>)。其中contrast > 0。不难看出，当contrast=1时是原来的颜色，当contrast小于1时对比度减小，大于1时对比度增大。</p></div>
+
+<div class="haveBorder"><p><b>饱和度调整</b>，最简单粗暴的方法跟对比度类似，只不过用到的N不再是颜色值域的一半，而是RGB值的灰度(加权平均)或者说平均值(N = (R+G+B)/3)，最终结果为:<b><font color="red">mix(N, color, saturation)</font></b></p></div>
+
+<div class="haveBorder"><p><b>模糊锐化调整</b>，当然是卷积了。最简单粗暴的方法莫过于对四/八领域采样然后加权平均了，请参考高斯模糊。前面几话里面的Emboss和Edge的demo里面已经有采样的例子，你可以参考一下。以直接取平均值的模糊为例，假如某个点p的RGB值为pColor，它的上下左右的点分别为pColor1,pColor2,pColor3,pColor4，那么这里用到的<b>N = (pColor + pColor1 + pColor2 + pColor3 + pColor4) / 5。</b>最终结果为:<b><font color="red">mix(N, color, intensity)</font></b>。也许你会有疑问，不是模糊和锐化吗，这就跟intensity参数有关了，原理其实还是跟对比度饱和度调整类似，当intensity取值[0, 1)时为模糊，且为0时取得模糊的最大值。当intensity为1时是原来的颜色。当intensity>1 时为锐化（<font color="red">想知道更多为什么的话请自行搜索"反锐化遮罩/掩模"</font>）</p></div>
+
+<div class="haveBorder"><p><b>曲线调整</b>，这个就是这一次的demo了。也是列举的这几个里面最麻烦的一个。希望你能根据此demo代码，自己实现出以上四种调整</p>
+<p><font color="blue">描述一下它的原理吧: 对于任何图片上的所有像素，现在以RGB888为例，三个通道取值都是[0, 255]。我们根据这个定义域创建一个函数 f(x)。当 f(x) = x 时，很容易知道,函数 y 的定义域和值域都是[0, 255]。</font></p>
+<p><font color="green">我们有图像A，对于所有图像A上的所有点Pn执行Pn = f(Pn)，最终得到新的图像A'，那么A'就是A经过曲线f(x)调整过后的图像。举个简单的例子，当g(x)=x*x/255 时易知x/255的范围为[0~1]，所以g(x)的值域依然是[0, 255]，此时A经过g(x)生成出的图像A'就要整体比原来的图像偏暗了</font></p>
+<p>而在Photoshop中，曲线调整并不是一个固定的函数表达式，而是给出f(x)=x的函数图像让用户去拖动，然后根据用户给出的所有点计算出一条新的过所有点的平滑的曲线F(x) <font color="blue">（F(x)为分段函数，如果曲线某一段超出边界，则取边界值，比如某一段计算出来小于0，那么最终那一段直接取0）</font>。这也就是看似神奇的曲线调整的基本含义。</p>
+<p>作为附加知识，讲这么多差不多够了。需要注意的一点就是由于定义域和值域都是一定的，所以我们是可以将多次曲线调整合并并映射为一次的。比如我们要先进行f(x)然后进行g(x)，最终也就是g(f(x))，可在定义域内取一定的精度然后将定义域内的所有值全部映射出来形成新的曲线函数h(x)</p>
+</div>
+<div class="noborder">
+<div class="divWithCanvas" id="containerView">
+<canvas id="webglView" style="width:100%;height:100%"></canvas>
+</div>
+<div style="position:relative;width:100%;height:188px">
+<div class="curveRGB" id="curveRGB" onmousedown="isRGBDown=true;" onmouseup="isRGBDown=false;pushBackPoints(this, event, 0)" onmousemove="if(isRGBDown){drawTmpPoints(this, event, 0);}"><canvas id="curveRGBView" style="width:100%;height:100%"></canvas></div>
+<div class="curveR" id="curveR" onmousedown="isRDown=true;" onmouseup="isRDown=false;pushBackPoints(this, event, 1)" onmousemove="if(isRDown){drawTmpPoints(this, event, 1);}"><canvas id="curveRView" style="width:100%;height:100%"></canvas></div>
+<div class="curveG" id="curveG" onmousedown="isGDown=true;" onmouseup="isGDown=false;pushBackPoints(this, event, 2)" onmousemove="if(isGDown){drawTmpPoints(this, event, 2);}"><canvas id="curveGView" style="width:100%;height:100%"></canvas></div>
+<div class="curveB" id="curveB" onmousedown="isBDown=true;" onmouseup="isBDown=false;pushBackPoints(this, event, 3)" onmousemove="if(isBDown){drawTmpPoints(this, event, 3);}"><canvas id="curveBView" style="width:100%;height:100%"></canvas></div>
+</div>
+<script>
+function reSizeCanvas(father, obj)
+{
+	var fatherDiv = document.getElementById(father);
+	obj.width = fatherDiv.clientWidth;
+	obj.height = fatherDiv.clientHeight;
+}
+var cvsRGB = document.getElementById("curveRGBView");
+var cvsR = document.getElementById("curveRView");
+var cvsG = document.getElementById("curveGView");
+var cvsB = document.getElementById("curveBView");
+reSizeCanvas("curveRGB", cvsRGB);
+reSizeCanvas("curveR", cvsR);
+reSizeCanvas("curveG", cvsG);
+reSizeCanvas("curveB", cvsB);
+drawCurve(cvsRGB, 0);
+drawCurve(cvsR, 1);
+drawCurve(cvsG, 2);
+drawCurve(cvsB, 3);
+</script>
+<div style="border:groove;background-color:#ddd;width:100%"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
+</textarea><br>
+<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"><input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"><input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+</div>
+</div>
+<script>
+function imageOnload() {
+	webglInit();
+	if(webgl == null)
+	{
+		appendLog("See more: http://get.webgl.org/");
+		return;
+	}
+	appendLog("WebGL is supported! That's cool!\nHere are some infomation for your device:");
+	appendLog("The max renderbuffer size your browser support: " + 	webgl.getParameter(webgl.MAX_RENDERBUFFER_SIZE));
+	appendLog("The max texture image units your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_IMAGE_UNITS));
+	appendLog("The max texture size your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_SIZE));
+	appendLog("The max cube map texture size your browser support: " + webgl.getParameter(webgl.MAX_CUBE_MAP_TEXTURE_SIZE));
+	appendLog("The max viewport dims your browser support: " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[0] + " x " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[1]);
+}
+</script>
+
+<script id="vsh_lesson5" type="x-shader/x-vertex">
+attribute vec4 position;
+attribute vec4 inputTextureCoordinate;
+varying vec2 textureCoordinate;
+void main()
+{
+	gl_Position = position;
+	// 这是一种取巧的做法，强行把顶点坐标映射为纹理坐标，
+	// 但是仅适用于本章用到的刚好占满整个viewport的顶点哦。
+	textureCoordinate = vec2((position.x+1.0)/2.0, 1.0-(position.y+1.0)/2.0);
+}
+</script>
+
+<script id="fsh_lesson5" type="x-shader/x-fragment">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform sampler2D curveTexture;
+void main()
+{
+	vec3 src = texture2D(inputImageTexture, textureCoordinate).rgb;
+	src.r = texture2D(curveTexture, vec2(src.r, 0.0)).r;
+	src.g = texture2D(curveTexture, vec2(src.g, 0.0)).g;
+	src.b = texture2D(curveTexture, vec2(src.b, 0.0)).b;
+	gl_FragColor = vec4(src, 1.0);
+}
+</script>
+<div style="display:none"><img src="vocaloid2.jpg" id="vocaloid" onload="imageOnload();renderPicture(curveRGB, curveR, curveG, curveB);appendLog('图像加载完毕，请使用鼠标点击拖动上面黑框内的曲线。曲线代码经过测试兼容IE11, Chrome,Firefox,Opera等浏览器，如果无法正常绘制曲线，建议换一个浏览器试试')"></div>
 <p>好的，本期差不多就这么多了，附上一个实现好的demo吧，点击下面的按钮打开：</p>
 <input type="button" value = "Click me to see the demo" title="获取本章demo" onclick="window.open('demo-lesson5.html', '_blank', 'toolbar=no, location=no')" style="width:200px;height:50px;">
 <p>好的，第四期教程到此为止，请关注lesson 5。系列教程地址:webgl-lesson.wysaid.org</p>

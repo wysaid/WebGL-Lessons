@@ -16,7 +16,7 @@ function webglInit() {
     webgl = myCanvasObject.getContext("experimental-webgl");
 	if(webgl == null)
 	{
-		appendLog("你的浏览器不支持webgl");
+		appendLog("你的浏览器不支持webgl，请使用Chrome等支持WebGL的浏览器");
 		return;
 	}
 	
