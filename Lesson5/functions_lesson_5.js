@@ -390,8 +390,9 @@ function pushBackPoints(obj, event, index)
 {
 	var w = obj.clientWidth;
 	var h = obj.clientHeight;
-	var x = event.offsetX / w;
-	var y = 1.0 - event.offsetY / h;
+	//兼容Firefox浏览器
+	var x = (event.offsetX != null ? event.offsetX : event.layerX) / w;
+	var y = 1.0 - (event.offsetY != null ? event.offsetY : event.layerY) / h;
 	setCurrentCurveByIndex(index);
 	currentPoints.push(createPoint(x, y));
 	currentPoints.sort(function(a, b){return a.x - b.x;});
@@ -406,8 +407,9 @@ function drawTmpPoints(obj, event, index)
 {
 	var w = obj.clientWidth;
 	var h = obj.clientHeight;
-	var x = event.offsetX / w;
-	var y = 1.0 - event.offsetY / h;
+	//兼容Firefox浏览器
+	var x = (event.offsetX != null ? event.offsetX : event.layerX) / w;
+	var y = 1.0 - (event.offsetY != null ? event.offsetY : event.layerY) / h;
 	setCurrentCurveByIndex(index);
 	var tmpPoints = currentPoints.concat();
 	tmpPoints.push(createPoint(x, y));
