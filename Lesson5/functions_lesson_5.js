@@ -1,4 +1,9 @@
-﻿var webgl = null;
+﻿/*
+Author: wysaid
+Blog: blog.wysaid.org
+Mail: wysaid@gmail.com OR admin@wysaid.org
+*/
+var webgl = null;
 var vertexShaderObject = null;
 var fragmentShaderObject = null;
 var programObject = null;
