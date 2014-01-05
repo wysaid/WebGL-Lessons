@@ -394,7 +394,7 @@ function pushBackPoints(obj, event, index)
 	var y = 1.0 - event.offsetY / h;
 	setCurrentCurveByIndex(index);
 	currentPoints.push(createPoint(x, y));
-	currentPoints.sort(function(a, b){return a.x > b.x;});
+	currentPoints.sort(function(a, b){return a.x - b.x;});
 	genCurve(currentPoints, currentCurve);
 	drawCurve(obj.children.item(0), index)
 	appendLog("在 " + currentName + " 中添加了一个新的点:(" + parseInt(x * 255) + ", " + parseInt(y * 255) + ")");
@@ -411,7 +411,7 @@ function drawTmpPoints(obj, event, index)
 	setCurrentCurveByIndex(index);
 	var tmpPoints = currentPoints.concat();
 	tmpPoints.push(createPoint(x, y));
-	tmpPoints.sort(function(a, b){return a.x > b.x;});
+	tmpPoints.sort(function(a, b){return a.x - b.x;});
 	genCurve(tmpPoints, currentCurve);
 	drawCurve(obj.children.item(0), index);
 	renderPicture(curveRGB, curveR, curveG, curveB);
