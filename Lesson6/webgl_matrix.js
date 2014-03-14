@@ -275,9 +275,9 @@ WYMat4.makeRotation = function(rad, x, y, z)
 	x *= scale;
 	y *= scale;
 	z *= scale;
-	var cosRad = cosf(rad);
+	var cosRad = Math.cos(rad);
 	var cosp = 1.0 - cosRad;
-	var sinRad = sinf(rad);
+	var sinRad = Math.sin(rad);
 	return new WYMat4(cosRad + cosp * x * x,
 		cosp * x * y + z * sinRad,
 		cosp * x * z - y * sinRad,

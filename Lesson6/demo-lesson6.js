@@ -6,27 +6,39 @@ var smallModel = null;
 var modelXMax = 250.0;
 var modelYMax = 250.0;
 var modelZMax = 250.0;
-var smallModeSize = 10.0;
+var smallModeSize = 30.0;
 var viewport = new WYVec4(0.0, 0.0, modelXMax, modelYMax);
 
-var projMatrix = WYMat4.makeOrtho(0.0, modelXMax, 0.0, modelYMax, -1.0, 1.0);
-var modelViewMatrix = WYMat4.makeIdentity();
+var perspectiveMatrix = null;
+var orthoMatrix = WYMat4.makeOrtho(0.0, modelXMax, 0.0, modelYMax, -1.0, 1.0);;
 
+var projMatrix = orthoMatrix;
+var modelViewMatrix = WYMat4.makeIdentity();
+var smallModelViewMatrix = WYMat4.makeIdentity();
 
 var usePerspective = false;
+
+var cx = 0;
+var cy = 0;
+var dx = Math.random() + 0.01;
+var dy = Math.random() + 0.01;
 
 function resizeCanvas(w, h)
 {
 	viewport.data[2] = w;
 	viewport.data[3] = h;
+	perspectiveMatrix = WYMat4.makePerspective(45.0, w / h, -1.0, 1.0);
+	orthoMatrix = WYMat4.makeOrtho(0.0, w, 0.0, h, -1.0, 1.0);
 	if(usePerspective)
-		projMatrix = WYMat4.makePerspective(45.0, w / h, -1.0, 1.0);
+		projMatrix = perspectiveMatrix;
 	else
-		projMatrix = WYMat4.makeOrtho(0.0, w, 0.0, h, -1.0, 1.0)
+		projMatrix = orthoMatrix;
 	//使用默认的视点就够了，所以不调用LookAt.
 	modelViewMatrix = WYMat4.makeIdentity();
 	modelViewMatrix.translateX(w / 2.0);
 	modelViewMatrix.translateY(h / 2.0);
+	cx = 0;
+	cy = 0;
 }
 
 function mouseDown(mouseEvent)
@@ -100,28 +112,33 @@ function drawBigModel(ctx)
 			ctx.lineTo(modelPoint[j].data[0], modelPoint[j].data[1]);
 		}
 	}
-	ctx.stroke();
 }
 
 function drawSmallModel(ctx)
 {
 	var modelPoint = new Array(smallModel.length);
-
 	for(var i = 0; i < smallModel.length; ++i)
 	{
 		modelPoint[i] = new WYVec3();
-		WYMat4.projectM4(smallModel[i], modelViewMatrix, projMatrix, viewport, modelPoint[i]);
+		WYMat4.projectM4(smallModel[i], smallModelViewMatrix, orthoMatrix, viewport, modelPoint[i]);
 	}
 
 	for(var i = 0; i < smallModel.length; ++i)
 	{
 		for(var j = i+1; j < smallModel.length; ++j)
 		{
-			ctx.moveTo(modelPoint[i].data[0], modelPoint[i].data[1]);
-			ctx.lineTo(modelPoint[j].data[0], modelPoint[j].data[1]);
+			ctx.moveTo(modelPoint[i].data[0] + cx, modelPoint[i].data[1] + cy);
+			ctx.lineTo(modelPoint[j].data[0] + cx, modelPoint[j].data[1] + cy);
 		}
 	}
-	ctx.stroke();
+	ctx.fillText("这不是WebGL哟", modelPoint[0].data[0] + cx, modelPoint[0].data[1] + cy);
+	cx += dx;
+	cy += dy;
+	if(cx < 0 || cx > viewport.data[2])
+		dx = -dx;
+	if(cy < 0 || cy > viewport.data[3])
+		dy = -dy;
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeRotation(Math.random() / 10.0, Math.random(), Math.random(), Math.random()));	
 }
 
 function drawCanvas(cvsName)
@@ -132,10 +149,15 @@ function drawCanvas(cvsName)
 	cvsContext.clearRect(0, 0, cvsObj.width, cvsObj.height);
 
 	cvsContext.lineWidth = 2;
-	cvsContext.strokeStyle = "#ff0";
 	cvsContext.beginPath();
+	cvsContext.strokeStyle = "#ff0";
 	drawBigModel(cvsContext);
+	cvsContext.stroke();
+	cvsContext.closePath();
+	cvsContext.beginPath();
+	cvsContext.strokeStyle = "#00f";
 	drawSmallModel(cvsContext);
+	cvsContext.stroke();
 	cvsContext.closePath();
 //	modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeZRotation(0.1));	
 }
