@@ -2,11 +2,52 @@
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title>Lesson 6</title>
+<meta charset="utf-8" />
+<title>Lesson 6</title>
+<script src="demo-lesson6.js" charset="utf-8"></script>
 </head>
-<body>
-    <h1>WebGL simple lesson 6 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<body style="font-family:微软雅黑;">
+<h1>第六话，了解OpenGL坐标系，实现并封装部分矩阵运算</h1>
+<p>时隔数月，终于把该了解的了解了很多。于是厚颜继续更新。<br>废话不多说，由于本教程将不引入任何第三方库，所有demo的代码均使用WebGL&Javascript代码完整提供，<br>而WebGL 并不提供矩阵相关的运算。 一旦涉及到3D，必然要先讲讲矩阵部分了。</p>
+<p>首先是OpenGL的坐标系，我们须明确，<br><font color="green">OpenGL使用右手笛卡尔坐标系，从左到右x递增，从下到上y递增，从远到近z递增</font><br>而通常我们的屏幕原点是在左上角，就xOy平面来说，y方向是反的。<br>初始化状态下，当前viewport指定的窗口(画布)范围恰好为-1到1。也就是前面几章所有demo用到的范围（前面几章仅仅进行了平面处理，每次都重绘整张画布）</p>
+<p>由于本教程仅针对WebGL，所以仅粗略的介绍相关运算的知识。看完依旧不清楚的请自行查阅相关资料。<font color="red">须知：本章知识并不需要完全掌握，只要会使用就行。</font>下一章会封装出一个webgl_matrix.js完成所有的矩阵运算，请不要完全跳过本章内容。</p>
+<h3>OpenGL 坐标系&坐标变换等的一些概念</h3>
+<h5>世界坐标系</h5>
+<p>世界坐标系是在OpenGL中描述场景的坐标系。比如我们的三维世界中有一条线段AB，顶点A坐标为(Xa, Ya, Za)， 顶点B坐标为(Xb, Yb, Zb)，这里的A和B就属于世界坐标系</p>
+
+<h5>模型坐标系 &模型变换</h5>
+<p>模型坐标系是描述一个模型的坐标系。就比如上面提到的线段AB所构成的线段模型，如果它的长度为1， 那么A可以为(1, 0, 0), B为(0, 0, 0)。当然，我们可以有无数种A和B的组合让这条线段长度为1。 而把这里的A和B进行移位、旋转和缩放之后放到世界坐标系里面的过程叫做模型变换。较典型的OpenGL函数有glRotate, glTransform, glScale等</p>
+
+<h5>法向量变换 </h5>
+<p>法向量用来计算光照，光照方向和法向量的夹角影响光的强度， 法向量也决定了物体是面向光还是背光。相关资料参考：（<a href="http://www.songho.ca/opengl/gl_normaltransform.html" target="_blank">http://www.songho.ca/opengl/gl_normaltransform.html</a>）</p>
+
+<h5>视点坐标系 &视点变换</h5>
+<p>在OpenGL中没有单独的view matrix。而 GL_MODELVIEW 矩阵则是 Model Matrix(模型矩阵) 与 View Matrix (视觉矩阵) 的组合 (ViewMatrix * ModelMatrix )。较典型的视点变换函数为gluLookAt。 而由于 ViewMatrix为 左乘数， 所以我们一般对GL_MODELVIEW 进行 loadIdentity之后先进行gluLookAt。当然这些东西WebGL都是没有的，稍后我们将自己计算出相关矩阵。</p>
+
+<h5>裁剪坐标系 &投影变换</h5>
+<p>视点坐标系与投影矩阵相乘得到裁剪坐标系。投影矩阵定义了一个平截头体，将平截头体以内的场景作为绘制对象，超出部分裁剪掉。投影变换分为透视投影(perspective)和平行投影(ortho)。</p>
+
+<h5>规格化设备坐标系 </h5>
+<p>将裁剪坐标系除以w所得(透视除法)。这一步在透视投影过程中称为透视除法（Perspective Division），这是透视投影变换的第2步，经过这一步，就丢弃了原始的z值（得到了规则观察体中对应的z值，篇幅所限，请自行查阅资料），顶点才算完成了投影。此步过后，x, y, z三个方向的坐标将被标准化(取值范围为[-1, 1]。</p>
+
+<h5>屏幕坐标系</h5>
+<p>将规格化设备坐标系通过viewport变换就可以得到屏幕坐标系。屏幕坐标系当然是仅包含x和y的，z值将作为深度信息确定一些遮挡问题（如果启用GL_DEPTH_TEST的话）。简单概括来就是，假如viewport为 x0, y0, w, h， 那么我们只需要下面的操作：<br>
+x = x0 + (x + 1) * w / 2;<br>
+y = y0 + (y + 1) * h / 2;<br>
+z = (z + 1) / 2;<br></p>
+
+<p><font color="green">讲得有点多，如果还是不大明白的话，不妨再看看这个： <a href="http://www.songho.ca/opengl/gl_transform.html" target="_blank">http://www.songho.ca/opengl/gl_transform.html</a></font>。 这里将一些必要的算式以图片形式给了处理，非常便于理解。看不明白也没关系，继续往下看，知道怎么用的就好</p>
+
+<h3>好的，相关资料就介绍这么多，下面开始动手吧！</h3>
+<p>凡事讲究循序渐进，为了让本章内容更加深刻，<font color="red">本章demo将不使用WebGL，而使用HTML5方式，以普通2D线条模拟出3D模型的效果。</font>（当然了， 须得简单结合上面的矩阵变换的知识，实现的效果也较为简单）</p>
+<p>首先当然需要先创建一个图形界面了（个人喜好），样式如下：</p>
+<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:80%;height:350px;"><div style="margin:10px 0;position:relative;width:100%;height:300px;background-color: #d00;">
+<canvas style="width:100%;height:100%;position:relative;"></canvas></div>
+<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="reset" title="重置画面"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="ortho" title="平行投影"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="perspective" title="透视投影">
+</div>
+
+<h5>那么这个demo需要些什么矩阵功能呢？</h5>
+<p>首先当然必须是4x4矩阵相乘的乘法运算</p>
 
 </body>
 </html>
