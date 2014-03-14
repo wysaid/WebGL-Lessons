@@ -5,6 +5,7 @@
 <meta charset="utf-8" />
 <title>Lesson 6</title>
 <script src="demo-lesson6.js" charset="utf-8"></script>
+<script src="webgl_matrix.js" charset="utf-8"></script>
 </head>
 <body style="font-family:微软雅黑;">
 <h1>第六话，了解OpenGL坐标系，实现并封装部分矩阵运算</h1>
@@ -48,6 +49,12 @@ z = (z + 1) / 2;<br></p>
 
 <h5>那么这个demo需要些什么矩阵功能呢？</h5>
 <p>首先当然必须是4x4矩阵相乘的乘法运算</p>
+<script>
 
+var sb = WYMat4.makeScale( 1.0, 0.5, 0.9);
+var s2 = new WYVec3(0, 1, 0);
+alert(sb.data);
+
+</script>
 </body>
 </html>
