@@ -4,10 +4,10 @@
 <head>
 <meta charset="utf-8" />
 <title>Lesson 6</title>
-<script src="demo-lesson6.js" charset="utf-8"></script>
 <script src="webgl_matrix.js" charset="utf-8"></script>
+<script src="demo-lesson6.js" charset="utf-8"></script>
 </head>
-<body style="font-family:微软雅黑;">
+<body style="font-family:微软雅黑;" onresize="bodyResize()" onload="bodyResize()">
 <h1>第六话，了解OpenGL坐标系，实现并封装部分矩阵运算</h1>
 <p>时隔数月，终于把该了解的了解了很多。于是厚颜继续更新。<br>废话不多说，由于本教程将不引入任何第三方库，所有demo的代码均使用WebGL&Javascript代码完整提供，<br>而WebGL 并不提供矩阵相关的运算。 一旦涉及到3D，必然要先讲讲矩阵部分了。</p>
 <p>首先是OpenGL的坐标系，我们须明确，<br><font color="green">OpenGL使用右手笛卡尔坐标系，从左到右x递增，从下到上y递增，从远到近z递增</font><br>而通常我们的屏幕原点是在左上角，就xOy平面来说，y方向是反的。<br>初始化状态下，当前viewport指定的窗口(画布)范围恰好为-1到1。也就是前面几章所有demo用到的范围（前面几章仅仅进行了平面处理，每次都重绘整张画布）</p>
@@ -48,12 +48,102 @@ z = (z + 1) / 2;<br></p>
 </div>
 
 <h5>那么这个demo需要些什么矩阵功能呢？</h5>
-<p>首先当然必须是4x4矩阵相乘的乘法运算</p>
-<script>
+<p>本demo将包含一个随机生成的较复杂的较大的模型和一个较简单的小立方体。由于教程窗口大小有限，大的模型不需要随便动，但是可以使用鼠标旋转。较小的立方体则不停地游荡和旋转。</p>
+<p>所以我们需要的至少包含平行&透视投影矩阵算法，模型旋转矩阵算法。（其中模型移动的算法可有可无，因为我们使用HTML5方式模拟，可以把线条画到指定的坐标上。</p>
+<p>最后我们还需要一个映射算法，将最终结果映射到屏幕上</p>
+<p><font color = "red">其中矩阵算法部分较为复杂，并且不是必须掌握，所以不详细讲述。</font>有兴趣的读者可以参阅，本章我编写了一个js文件，<a href="webgl_matrix.js">点击此处查看</a></p>
+<p>这里简单讲述一下我编写的<font color="green">webgl_matrix.js</font>里面的一些转换方法</p>
+<p>
+在webgl_matrix.js里面包含三个我们需要用到的类，分别是<font color="red"><b>三维向量WYVec3，四维向量WYVec4以及4x4矩阵WYMat4</b></font>。
+使用时可以直接new 一个这类对象出来使用。提供了本次demo需要用到（以及部分现在用不到，以后可能会用到）的方法。<br>
+当然，还有很多静态方法
+比如 <br><b>WYMat4.makeLookAt</b> ，顾名思义，参数跟gluLookAt是一样的，生成一个该状态下的4x4矩阵。<br>
+<b>WYMat4.makeOrtho</b>, 参数跟glOrtho一样，生成一个该状态下的平行投影矩阵。
+<b>WYMat4.makePerspective</b>, 参数跟gluPerspective一样，生成一个该状态下的透视投影矩阵。
+还有一些比如旋转，平移之类的，就不多赘述了。
+</p>
 
-var sb = WYMat4.makeScale( 1.0, 0.5, 0.9);
-var s2 = new WYVec3(0, 1, 0);
-alert(sb.data);
+<h4>下面来详细讲一下怎么做吧。</h4>
+
+<p>首先当然是生成简单模型了。本次demo的模型超级简单，就是30~50个3维的点，然后我们把它们两两使用直线相连，就可以得到一个看起来还算比较立体的效果(30*29 = 870)。于是乎，我们的代码可能就是下面这样的：
+</p>
+<pre>
+//生成大模型:
+var bigModel = null;
+function genBigModel(width, height, depth)
+{
+	bigModel = new Array(30);
+	for(var i = 0; i != 30; ++i)
+	{
+		bigModel = new WYVec4(Math.random() * width * 2 - width,
+			Math.random() * height * 2 - height,
+			Math.random() * depth * 2 - depth,
+			1.0);
+	}
+}
+
+//生成小模型：
+var smallModel = null;
+function genSmallModel(size)
+{
+	smallModel = new Array(
+		new WYVec4(-size, -size, size, 1.0),
+		new WYVec4(size, -size, size, 1.0),
+		new WYVec4(size, size, size, 1.0),
+		new WYVec4(-size, size, size, 1.0),
+		new WYVec4(-size, -size, -size, 1.0),
+		new WYVec4(size, -size, -size, 1.0),
+		new WYVec4(size, size, -size, 1.0),
+		new WYVec4(-size, size, -size, 1.0));
+}
+</pre>
+
+<p>接下来就要用到我们封装好的矩阵和向量算法了， 代码如下</p>
+
+<pre>
+//模型转换矩阵：（初始化为单位矩阵）
+var modelViewMatrix = WYMat4.makeIdentity();
+
+//投影矩阵：(初始化为大模型xOy平面下尺寸大小的平行投影)
+var projMatrix = WYMat4.makeOrtho(0.0, modelXMax, 0.0, modelYMax, -1.0, 1.0);
+
+//viewport大小也初始化为大模型xOy平面下尺寸大小
+var viewport = new WYVec4(0.0, 0.0, modelXMax, modelYMax);
+
+//设置flag，标记当前使用的是什么方式的投影。
+var usePerspective = false;
+
+//当画布大小改变时，我们需要做的事：
+function resizeCanvas(w, h)
+{
+	viewport.data[2] = w;
+	viewport.data[3] = h;
+	if(usePerspective)
+		projMatrix = WYMat4.makePerspective(45.0, w / h, -1.0, 1.0);
+	else
+		projMatrix = WYMat4.makeOrtho(0.0, w, 0.0, h, -1.0, 1.0)
+	//使用默认的视点就够了，所以不乘以LookAt生成的矩阵.
+}
+
+</pre>
+
+
+<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:80%;height:550px;"><div style="margin:10px 0;position:relative;width:100%;height:500px;background-color: #d00;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp()" onmousemove="rotate(event)">
+<canvas id="webgl-lesson6" style="width:100%;height:100%;position:relative;"></canvas></div>
+<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="reset" title="重置画面"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="ortho" title="平行投影"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="perspective" title="透视投影">
+</div>
+<script>
+function bodyResize()
+{
+	var divObj = document.getElementById("canvas_father");
+	var cvsObj = document.getElementById("webgl-lesson6");
+	cvsObj.width = divObj.clientWidth;
+	cvsObj.height = divObj.clientHeight;
+	resizeCanvas(cvsObj.width, cvsObj.height);
+	drawCanvas('webgl-lesson6')
+}
+
+setInterval("drawCanvas('webgl-lesson6')", 20);
 
 </script>
 </body>

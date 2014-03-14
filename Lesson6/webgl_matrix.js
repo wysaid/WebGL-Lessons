@@ -374,7 +374,7 @@ WYMat4.makeLookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, centerZ,	upX, u
 	var u = WYVec3.vec3Cross(uv, n).normalize();
 	var v = WYVec3.vec3Cross(n, u);
 
-	return WYMat4(u.data[0], v.data[0], n.data[0], 0.0,
+	return new WYMat4(u.data[0], v.data[0], n.data[0], 0.0,
 		u.data[1], v.data[1], n.data[1], 0.0,
 		u.data[2], v.data[2], n.data[2], 0.0,
 		-u.dot(ev),
@@ -385,7 +385,7 @@ WYMat4.makeLookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, centerZ,	upX, u
 
 WYMat4.mat4Mul = function(mat4Left, mat4Right)
 {
-	return WYMat4(
+	return new WYMat4(
 		mat4Left.data[0] * mat4Right.data[0] + mat4Left.data[4] * mat4Right.data[1] + mat4Left.data[8] * mat4Right.data[2] + mat4Left.data[12] * mat4Right.data[3],
 		mat4Left.data[1] * mat4Right.data[0] + mat4Left.data[5] * mat4Right.data[1] + mat4Left.data[9] * mat4Right.data[2] + mat4Left.data[13] * mat4Right.data[3],
 		mat4Left.data[2] * mat4Right.data[0] + mat4Left.data[6] * mat4Right.data[1] + mat4Left.data[10] * mat4Right.data[2] + mat4Left.data[14] * mat4Right.data[3],
@@ -407,17 +407,17 @@ WYMat4.mat4Mul = function(mat4Left, mat4Right)
 
 WYMat4.mat4MulVec4 = function(mat4, vec4)
 {
-	return WYVec4(
+	return new WYVec4(
 		mat4.data[0] * vec4.data[0] + mat4.data[4] * vec4.data[1] + mat4.data[8] * vec4.data[2] + mat4.data[12] * vec4.data[3],
-		mat4.data[0] * vec4.data[0] + mat4.data[5] * vec4.data[1] + mat4.data[9] * vec4.data[2] + mat4.data[13] * vec4.data[3],
-		mat4.data[0] * vec4.data[0] + mat4.data[6] * vec4.data[1] + mat4.data[10] * vec4.data[2] + mat4.data[14] * vec4.data[3],
-		mat4.data[0] * vec4.data[0] + mat4.data[7] * vec4.data[1] + mat4.data[11] * vec4.data[2] + mat4.data[15] * vec4.data[3]
+		mat4.data[1] * vec4.data[0] + mat4.data[5] * vec4.data[1] + mat4.data[9] * vec4.data[2] + mat4.data[13] * vec4.data[3],
+		mat4.data[2] * vec4.data[0] + mat4.data[6] * vec4.data[1] + mat4.data[10] * vec4.data[2] + mat4.data[14] * vec4.data[3],
+		mat4.data[3] * vec4.data[0] + mat4.data[7] * vec4.data[1] + mat4.data[11] * vec4.data[2] + mat4.data[15] * vec4.data[3]
 		);
 }
 
 WYMat4.mat4MulVec3 = function(mat4, vec3)
 {
-	return WYVec3(
+	return new WYVec3(
 		mat4.data[0] * vec3.data[0] + mat4.data[4] * vec3.data[1] + mat4.data[8] * vec3.data[2],
 		mat4.data[1] * vec3.data[0] + mat4.data[5] * vec3.data[1] + mat4.data[9] * vec3.data[2],
 		mat4.data[2] * vec3.data[0] + mat4.data[6] * vec3.data[1] + mat4.data[10] * vec3.data[2]
@@ -454,3 +454,24 @@ WYMat4.makeMat4WithQuaternion = function(x, y, z, w)
 		1.0);
 }
 
+//obj: WYVec4; w should be 1.0
+//modelViewMat, projMat: WYMat4;
+//viewport: WYVec4;
+//winCoord: WYVec3;
+WYMat4.projectM4 = function(obj, modelViewMat, projMat, viewport, winCoord)
+{
+	var result = WYMat4.mat4MulVec4(projMat, WYMat4.mat4MulVec4(modelViewMat, obj));
+
+	if (result.data[3] == 0.0)
+		return false;
+
+	result.data[0] /= result.data[3];
+	result.data[1] /= result.data[3];
+	result.data[2] /= result.data[3];
+
+	winCoord.data[0] = viewport.data[0] + (1.0 + result.data[0]) * viewport.data[2] / 2.0;
+	winCoord.data[1] = viewport.data[1] + (1.0 + result.data[1]) * viewport.data[3] / 2.0;
+
+	winCoord.data[2] = (1.0 + result.data[2]) / 2.0;
+	return true;
+}
