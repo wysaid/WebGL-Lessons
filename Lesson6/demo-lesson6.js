@@ -138,7 +138,7 @@ function drawSmallModel(ctx)
 		dx = -dx;
 	if(cy < 0 || cy > viewport.data[3])
 		dy = -dy;
-	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeRotation(Math.random() / 10.0, Math.random(), Math.random(), Math.random()));	
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeRotation(Math.random() / 10.0, Math.random(), Math.random(), 1));	
 }
 
 function drawCanvas(cvsName)
