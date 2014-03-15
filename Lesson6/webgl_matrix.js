@@ -436,7 +436,7 @@ WYMat4.makeMat4WithQuaternion = function(x, y, z, w)
 	var _2y = y + y;
 	var _2z = z + z;
 	var _2w = w + w;
-	return WYMat4(1.0 - _2y * y - _2z * z,
+	return new WYMat4(1.0 - _2y * y - _2z * z,
 		_2x * y + _2w * z,
 		_2x * z - _2w * y,
 		0.0,
