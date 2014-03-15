@@ -3,15 +3,15 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8" />
-<title>Lesson 6</title>
+<title>WebGL Lesson 6 - wysaid</title>
 <script src="webgl_matrix.js" charset="utf-8"></script>
 <script src="demo-lesson6.js" charset="utf-8"></script>
 </head>
 <body style="font-family:微软雅黑;" onresize="bodyResize()" onload="bodyResize()">
-<h1>第六话，了解OpenGL坐标系，实现并封装部分矩阵运算</h1>
+<h1>第六话，了解OpenGL坐标系，实现并封装部分矩阵运算，通过矩阵运算实现一个2D线条模拟的3D场景</h1>
 <p>时隔数月，终于把该了解的了解了很多。于是厚颜继续更新。<br>废话不多说，由于本教程将不引入任何第三方库，所有demo的代码均使用WebGL&Javascript代码完整提供，<br>而WebGL 并不提供矩阵相关的运算。 一旦涉及到3D，必然要先讲讲矩阵部分了。</p>
 <p>首先是OpenGL的坐标系，我们须明确，<br><font color="green">OpenGL使用右手笛卡尔坐标系，从左到右x递增，从下到上y递增，从远到近z递增</font><br>而通常我们的屏幕原点是在左上角，就xOy平面来说，y方向是反的。<br>初始化状态下，当前viewport指定的窗口(画布)范围恰好为-1到1。也就是前面几章所有demo用到的范围（前面几章仅仅进行了平面处理，每次都重绘整张画布）</p>
-<p>由于本教程仅针对WebGL，所以仅粗略的介绍相关运算的知识。看完依旧不清楚的请自行查阅相关资料。<font color="red">须知：本章知识并不需要完全掌握，只要会使用就行。</font>下一章会封装出一个webgl_matrix.js完成所有的矩阵运算，请不要完全跳过本章内容。</p>
+<p>由于本教程仅针对WebGL，所以仅粗略的介绍相关运算的知识。看完依旧不清楚的请自行查阅相关资料。<font color="red">须知：本章知识并不需要完全掌握，只要会使用就行。</font>本章会封装出一个webgl_matrix.js完成所有的矩阵运算，请不要完全跳过本章内容。</p>
 <h3>OpenGL 坐标系&坐标变换等的一些概念</h3>
 <h5>世界坐标系</h5>
 <p>世界坐标系是在OpenGL中描述场景的坐标系。比如我们的三维世界中有一条线段AB，顶点A坐标为(Xa, Ya, Za)， 顶点B坐标为(Xb, Yb, Zb)，这里的A和B就属于世界坐标系</p>
@@ -65,7 +65,7 @@ z = (z + 1) / 2;<br></p>
 
 <h4>下面来详细讲一下怎么做吧。</h4>
 
-<p>首先当然是生成简单模型了。本次demo的模型超级简单，就是30~50个3维的点，然后我们把它们两两使用直线相连，就可以得到一个看起来还算比较立体的效果(30*29 = 870)。于是乎，我们的代码可能就是下面这样的：
+<p>首先当然是生成简单模型了。本次demo的模型超级简单，就是30~50个3维的点，然后我们把它们两两使用直线相连，就可以得到一个看起来还算比较立体的效果(30*29 = 870)。于是乎，我们的代码可能就是下面这样的：（部分代码，不完整。完整代码请参见末尾demo给出）
 </p>
 <pre>
 //生成大模型:
@@ -103,9 +103,14 @@ function genSmallModel(size)
 <pre>
 //模型转换矩阵：（初始化为单位矩阵）
 var modelViewMatrix = WYMat4.makeIdentity();
+var smallModelViewMatrix = WYMat4.makeIdentity(); //专给小模型使用
 
 //投影矩阵：(初始化为大模型xOy平面下尺寸大小的平行投影)
-var projMatrix = WYMat4.makeOrtho(0.0, modelXMax, 0.0, modelYMax, -1.0, 1.0);
+var perspectiveMatrix = WYMat4.makeIdentity();
+var orthoMatrix = WYMat4.makeIdentity();
+var usePerspective = true;  //设置Flag标记是否使用透视投影。
+var projMatrix = perspectiveMatrix;
+
 
 //viewport大小也初始化为大模型xOy平面下尺寸大小
 var viewport = new WYVec4(0.0, 0.0, modelXMax, modelYMax);
@@ -125,13 +130,159 @@ function resizeCanvas(w, h)
 	//使用默认的视点就够了，所以不乘以LookAt生成的矩阵.
 }
 
+//定义一系列需要用到的变量（大模型，大模型默认参数，小模型，小模型参数等）
+var bigModel = null;
+var smallModel = null;
+var modelXMax = 250.0;
+var modelYMax = 250.0;
+var modelZMax = 250.0;
+var smallModeSize = 30.0;
+
+//小模型运动参数
+var cx = 0;
+var cy = 0;
+var dx = Math.random() + 1;
+var dy = Math.random() + 1;
+
+
+// 接下来就是初始化矩阵函数，以及三个设置函数
+function resizeCanvas(w, h)
+{
+	viewport.data[2] = w;
+	viewport.data[3] = h;
+	var len = (w < h ? w : h);
+
+	orthoMatrix = WYMat4.makeOrtho(-w / 2.0, w / 2.0, -h / 2.0, h / 2.0, -1.0, 1.0);
+	perspectiveMatrix = WYMat4.makePerspective(45.0, w / h, -1.0, 1.0);
+	modelViewMatrix = WYMat4.makeLookAt(0.0, 0.0, len, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	smallModelViewMatrix = WYMat4.makeTranslation(-w / 2.0, -h / 2.0, 0.0);
+	if(usePerspective)
+	{
+		projMatrix = perspectiveMatrix;
+	}
+	else
+	{		
+		projMatrix = orthoMatrix;
+	}	
+	cx = 0;
+	cy = 0;
+}
+
+//设置为平行投影
+function setOrtho()
+{
+	usePerspective = false;
+	projMatrix = orthoMatrix;
+}
+
+//设置为透视投影
+function setPerspective()
+{
+	projMatrix = perspectiveMatrix;
+}
+
+//重置模型大小
+function resetModel()
+{
+	var len = (viewport.data[2] > viewport.data[3] ? viewport.data[3] : viewport.data[2]) / 2.0;
+	genBigModel(len, len, len);
+	genSmallModel(len / 20.0 + Math.random() * (len / 20.0));
+}
+
+//接下来就是绘制函数。如下
+function drawBigModel(ctx)
+{
+	var modelPoint = new Array(bigModel.length);
+
+	for(var i = 0; i < bigModel.length; ++i)
+	{
+		modelPoint[i] = new WYVec3();
+		WYMat4.projectM4(bigModel[i], modelViewMatrix, projMatrix, viewport, modelPoint[i]);
+	}
+
+	for(var i = 0; i < bigModel.length; ++i)
+	{
+		for(var j = i+1; j < bigModel.length; ++j)
+		{
+			ctx.moveTo(modelPoint[i].data[0], modelPoint[i].data[1]);
+			ctx.lineTo(modelPoint[j].data[0], modelPoint[j].data[1]);
+		}
+	}
+	if(autoRotate)
+	{
+		modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeXRotation(0.01));
+		modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeYRotation(0.01));
+		modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeZRotation(Math.random() / 100.0));
+	}
+}
+
+function drawSmallModel(ctx)
+{
+	var modelPoint = new Array(smallModel.length);
+	for(var i = 0; i < smallModel.length; ++i)
+	{
+		modelPoint[i] = new WYVec3();
+		WYMat4.projectM4(smallModel[i], smallModelViewMatrix, orthoMatrix, viewport, modelPoint[i]);
+	}
+
+	for(var i = 0; i < smallModel.length; ++i)
+	{
+		for(var j = i+1; j < smallModel.length; ++j)
+		{
+			ctx.moveTo(modelPoint[i].data[0] + cx, modelPoint[i].data[1] + cy);
+			ctx.lineTo(modelPoint[j].data[0] + cx, modelPoint[j].data[1] + cy);
+		}
+	}
+	ctx.fillText("这不是WebGL哟", modelPoint[0].data[0] + cx, modelPoint[0].data[1] + cy);
+	cx += dx;
+	cy += dy;
+	if(cx < 0 || cx > viewport.data[2])
+		dx = -dx;
+	if(cy < 0 || cy > viewport.data[3])
+		dy = -dy;
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeXRotation(Math.random() / 10.0));
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeYRotation(Math.random() / 20.0));
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeZRotation(Math.random() / 30.0));	
+}
+
+function drawCanvas(cvsName)
+{
+	var cvsObj = document.getElementById(cvsName);
+	var cvsContext = cvsObj.getContext("2d");
+	cvsContext.fillStyle="#000";
+	cvsContext.clearRect(0, 0, cvsObj.width, cvsObj.height);
+	cvsContext.fillText("鼠标点击红色区域可以旋转大的模型", 20, 20);
+	cvsContext.lineWidth = 2;
+	cvsContext.beginPath();
+	cvsContext.strokeStyle = "#ff0";
+	drawBigModel(cvsContext);
+	cvsContext.stroke();
+	cvsContext.closePath();
+	cvsContext.beginPath();
+	cvsContext.strokeStyle = "#00f";
+	drawSmallModel(cvsContext);
+	cvsContext.stroke();
+	cvsContext.closePath();
+}
+
 </pre>
 
+<p>至此，我们的工作大致完成。当然，有一部分界面控制代码就不详细说明了。我们的demo效果如下（鼠标拖拽红色部分可以旋转模型）</p>
+<p>也许你觉得并不稀奇，但是本demo没有用到WebGL的API，所以，是纯2D线条画出来的哟。</p>
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:80%;height:550px;"><div style="margin:10px 0;position:relative;width:100%;height:500px;background-color: #d00;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp()" onmousemove="rotate(event)">
 <canvas id="webgl-lesson6" style="width:100%;height:100%;position:relative;"></canvas></div>
-<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="reset" title="重置画面"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="ortho" title="平行投影"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="perspective" title="透视投影">
-</div>
+<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="genModel" title="重置画面" onclick="resetModel()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="ortho" title="平行投影" onclick = "setOrtho()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="perspective" title="透视投影" onclick="setPerspective()"></div>
+
+<p>完整的demo点击下面的按钮打开。请自行右键另存代码并查看。<br>第六期教程到此为止，请关注lesson 6。系列教程地址:webgl-lesson.wysaid.org</p>
+
+<h2>附：</h2>
+<p><b><a href="https://raw.github.com/wysaid/WebGL-Lessons/gh-pages/Lesson6/webgl_matrix.js" target="_blank">webgl_matrix.js</a></b></p>
+<p><b><a href="https://raw.github.com/wysaid/WebGL-Lessons/gh-pages/Lesson6/demo-lesson6.js" target="_blank">demo-lesson6.js</a></b></p>
+<p><b><a href="https://raw.github.com/wysaid/WebGL-Lessons/gh-pages/Lesson6/demo_lesson6.html" target="_blank">demo_lesson6.html</a></b></p>
+
+
+
 <script>
 function bodyResize()
 {

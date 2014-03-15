@@ -9,37 +9,20 @@ var modelZMax = 250.0;
 var smallModeSize = 30.0;
 var viewport = new WYVec4(0.0, 0.0, modelXMax, modelYMax);
 
-var perspectiveMatrix = null;
-var orthoMatrix = WYMat4.makeOrtho(0.0, modelXMax, 0.0, modelYMax, -1.0, 1.0);;
+var perspectiveMatrix = WYMat4.makeIdentity();
+var orthoMatrix = WYMat4.makeIdentity();
 
 var projMatrix = orthoMatrix;
 var modelViewMatrix = WYMat4.makeIdentity();
 var smallModelViewMatrix = WYMat4.makeIdentity();
 
-var usePerspective = false;
+var usePerspective = true;
+var autoRotate = true;
 
 var cx = 0;
 var cy = 0;
-var dx = Math.random() + 0.01;
-var dy = Math.random() + 0.01;
-
-function resizeCanvas(w, h)
-{
-	viewport.data[2] = w;
-	viewport.data[3] = h;
-	perspectiveMatrix = WYMat4.makePerspective(45.0, w / h, -1.0, 1.0);
-	orthoMatrix = WYMat4.makeOrtho(0.0, w, 0.0, h, -1.0, 1.0);
-	if(usePerspective)
-		projMatrix = perspectiveMatrix;
-	else
-		projMatrix = orthoMatrix;
-	//使用默认的视点就够了，所以不调用LookAt.
-	modelViewMatrix = WYMat4.makeIdentity();
-	modelViewMatrix.translateX(w / 2.0);
-	modelViewMatrix.translateY(h / 2.0);
-	cx = 0;
-	cy = 0;
-}
+var dx = Math.random() + 1;
+var dy = Math.random() + 1;
 
 function mouseDown(mouseEvent)
 {
@@ -64,6 +47,7 @@ function rotate(mouseEvent)
 
 	lastX = x;
 	lastY = y;
+	autoRotate = false;
 }
 
 function genBigModel(width, height, depth)
@@ -94,6 +78,46 @@ function genSmallModel(size)
 genBigModel(modelXMax, modelYMax, modelZMax);
 genSmallModel(smallModeSize);
 
+function resizeCanvas(w, h)
+{
+	viewport.data[2] = w;
+	viewport.data[3] = h;
+	var len = (w < h ? w : h);
+
+	orthoMatrix = WYMat4.makeOrtho(-w / 2.0, w / 2.0, -h / 2.0, h / 2.0, -1.0, 1.0);
+	perspectiveMatrix = WYMat4.makePerspective(45.0, w / h, -1.0, 1.0);
+	modelViewMatrix = WYMat4.makeLookAt(0.0, 0.0, len, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	smallModelViewMatrix = WYMat4.makeTranslation(-w / 2.0, -h / 2.0, 0.0);
+	if(usePerspective)
+	{
+		projMatrix = perspectiveMatrix;
+	}
+	else
+	{		
+		projMatrix = orthoMatrix;
+	}	
+	cx = 0;
+	cy = 0;
+}
+
+function setOrtho()
+{
+	usePerspective = false;
+	projMatrix = orthoMatrix;
+}
+
+function setPerspective()
+{
+	projMatrix = perspectiveMatrix;
+}
+
+function resetModel()
+{
+	var len = (viewport.data[2] > viewport.data[3] ? viewport.data[3] : viewport.data[2]) / 2.0;
+	genBigModel(len, len, len);
+	genSmallModel(len / 20.0 + Math.random() * (len / 20.0));
+}
+
 function drawBigModel(ctx)
 {
 	var modelPoint = new Array(bigModel.length);
@@ -111,6 +135,12 @@ function drawBigModel(ctx)
 			ctx.moveTo(modelPoint[i].data[0], modelPoint[i].data[1]);
 			ctx.lineTo(modelPoint[j].data[0], modelPoint[j].data[1]);
 		}
+	}
+	if(autoRotate)
+	{
+		modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeXRotation(0.01));
+		modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeYRotation(0.01));
+		modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeZRotation(Math.random() / 100.0));
 	}
 }
 
@@ -138,7 +168,9 @@ function drawSmallModel(ctx)
 		dx = -dx;
 	if(cy < 0 || cy > viewport.data[3])
 		dy = -dy;
-	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeRotation(Math.random() / 10.0, Math.random(), Math.random(), 1));	
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeXRotation(Math.random() / 10.0));
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeYRotation(Math.random() / 20.0));
+	smallModelViewMatrix = WYMat4.mat4Mul(smallModelViewMatrix, WYMat4.makeZRotation(Math.random() / 30.0));	
 }
 
 function drawCanvas(cvsName)
@@ -147,7 +179,7 @@ function drawCanvas(cvsName)
 	var cvsContext = cvsObj.getContext("2d");
 	cvsContext.fillStyle="#000";
 	cvsContext.clearRect(0, 0, cvsObj.width, cvsObj.height);
-
+	cvsContext.fillText("鼠标点击红色区域可以旋转大的模型", 20, 20);
 	cvsContext.lineWidth = 2;
 	cvsContext.beginPath();
 	cvsContext.strokeStyle = "#ff0";
