@@ -108,6 +108,7 @@ function setOrtho()
 
 function setPerspective()
 {
+	usePerspective = true;
 	projMatrix = perspectiveMatrix;
 }
 
@@ -191,5 +192,4 @@ function drawCanvas(cvsName)
 	drawSmallModel(cvsContext);
 	cvsContext.stroke();
 	cvsContext.closePath();
-//	modelViewMatrix = WYMat4.mat4Mul(modelViewMatrix, WYMat4.makeZRotation(0.1));	
 }
