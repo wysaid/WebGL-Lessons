@@ -5,6 +5,7 @@
 */
 
 //为了便于区分函数名，本文件所有函数均以wy开头（轻吐槽@_@b）
+//本文件部分算法参考自: http://opengl.org/
 
 function WYVec3(x, y, z)
 {
@@ -60,12 +61,60 @@ function WYVec3(x, y, z)
 		this.data[2] *= scale;
 		return this;
 	}
-	
+
+	//////////////////////////////////////////////////
+
+	this.subFloat = function(fValue)
+	{
+		this.data[0] -= fValue;
+		this.data[1] -= fValue;
+		this.data[2] -= fValue;
+	}
+
+	this.addFloat = function(fValue)
+	{
+		this.data[0] += fValue;
+		this.data[1] += fValue;
+		this.data[2] += fValue;
+	}
+
+	this.mulFloat = function(fValue)
+	{
+		this.data[0] *= fValue;
+        this.data[1] *= fValue;
+        this.data[2] *= fValue;
+	}
+
+	this.divFloat = function(fValue)
+	{
+        this.data[0] /= fValue;
+        this.data[1] /= fValue;
+        this.data[2] /= fValue;
+	}
+
+	//////////////////////////////////////////////////
+
+	this.cross = function(v3)
+	{
+		var x = this.data[1] * v3.data[2] - this.data[2] * v3.data[1];
+        var y = this.data[2] * v3.data[0] - this.data[0] * v3.data[2];
+        this.data[2] = this.data[0] * v3.data[1] - this.data[1] * v3.data[0];
+        this.data[0] = x;
+        this.data[1] = y;
+	}
+		
 }
 
 WYVec3.makeVec3 = function(x, y, z)
 {
 	return new WYVec3(x, y, z);
+}
+
+WYVec3.vec3Sub = function(v3Left, v3Right)
+{
+	return WYVec3.makeVec3(v3Left.data[0] - v3Right.data[0],
+		v3Left.data[1] - v3Right.data[1],
+		v3Left.data[2] - v3Right.data[2]);
 }
 
 WYVec3.vec3Sub = function(v3Left, v3Right)
