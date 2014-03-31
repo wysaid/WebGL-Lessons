@@ -1,12 +1,451 @@
-﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title>Lesson 3</title>
+<meta charset="utf-8" />
+<title>Lesson 3</title>
+<style>
+.noborder{border:none;background-color:#999;width:300px;}
+.divWithCanvas{background-color:#fff;width:100%;height:240px;}
+</style>
 </head>
-<body>
-    <h1>WebGL simple lesson 3 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<body style="font-family:微软雅黑;">
+<h1>第三话，传递uniform变量以及引入纹理, 做一些简单的2D处理 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
 
+<p>上一期讲到了从文件和从html标签加载shader，这一期直接上纹理了。所有教程内容包括教程本身都可以在<a href="https://github.com/wysaid/WebGL-Lessons">https://github.com/wysaid/WebGL-Lessons</a>直接获得，喜欢的话就fork&star吧。这里就不放上一话的代码了。</p>
+<p>先卖个萌：我是手写html的！什么叫手写html呢？意思就是像“&lt;script&gt;, &lt;p&gt;,&lt;br&gt;,&lt;pre&gt;”这样的东西是我一个字符一个字符手动输入的，包括input的button，因为用word这样的编辑器会乱了格式~看我多辛苦呀，电脑前的你是不是有一点小感动呀?</p>
+<p>进入正题，天依酱镇楼。</p>
+<p><img src="vocaloid.jpg" id="vocaloid"></p>
+<h2> 第一步 </h2>
+<p>首先说明，本次我们要加入的纹理图片就是上面的天依酱了。不但要加入她，还要在此图像上进行一些处理，此处理仅在Fragment Shader之上进行更改。</p>
+<h3 style="color:#00f">加载图片资源的方式</h3>
+<p>我们要知道，加载图片跟加载shader也是很相似的，你可以用代码方式把图片内容写进来，比如常见的img标签里面src后面跟data:image/png;base64 + base64 编码的图像数据等。你可以用js创建一个img标签或者一个image对象，然后把这些数据写入进去直接使用。但是这种方法显然不适用于此处，我们不会把图片的编码写到代码里面的。我们只需要用到图片文件。</p>
+<p><font color="green">第一种方式:</font>直接从img标签里面加载。这种方式的跟直接把shader代码直接写到script标签里面是一个意思，用起来方便快捷。当然，你也许并不希望把这个img标签显示出来，那么，你只需要给这个img标签加上属性 style="display:none"就ok了。</p>
+<p>使用方式：</p>
+<pre>
+
+function createTextureByImgObject(imgObj){
+    //webgl 对象为前面教程里面函数创建的全局WebGL上下文对象。
+    //下面这一句可有可无，但为了养成良好习惯，还是写上吧。
+    //把临时纹理绑定设定在0号。
+    webgl.activeTexture(webgl.TEXTURE0); 
+    
+    //创建纹理对象，并设置其属性。需要注意的是，
+    //在GLES里面，TEXTURE_WRAP_S/T 只能设置为GL_CLAMP_TO_EDGE，所以也是可以不写的哟。
+    var textureObject = webgl.createTexture();
+    webgl.bindTexture(webgl.TEXTURE_2D, textureObject);
+    webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, webgl.RGBA, webgl.UNSIGNED_BYTE, imgObj);
+    webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+    webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+    webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+    webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+    return textureObject;
+}
+
+//在此，我们封装出一个通过img标签的id创建一个纹理的函数：
+function createTextureByImgID(imgID){
+    var imgObj = document.getElementById(imgID);
+    if(imgObj == null) {
+        return null; //这里应该写一些容错代码，但是本阶段属于初级阶段，暂不考虑。
+    }
+    return createTextureByImgObject(imgObj);
+}
+
+</pre>
+<p><font color="red">第二种方式:</font>通过JavaScript动态请求。在这一步上，我们必须做一个变通。</p>
+<p>首先需要知道的是，每个浏览器都会缓存图片，所以，我们动态请求的话，就算对某一张图片请求很多次，实际上真正用到网络的只是第一次请求而已。以及，有的浏览器，比如firefox，ctrl+f5都很难清楚这种缓存，只能打开设置清除。所以如果我们是在做测试，图片经常替换而图片url不换的话，很容易遇到这种问题(img标签方式的话，只需要多刷新几次就好了):我们明明替换了图片文件，但不管怎么刷新，还是显示的前面的一张。 解决方法就是给我们请求的文件加上随机的get参数……当然，最终发布产品的时候肯定要去掉，毕竟有缓存对于服务器来说是好事。</p>
+<p>其次，我们请求的image对象和纹理不需要共存，如果你长期保存了创建的纹理，那么这个请求的image对象就不需要保存，或者你可以删除纹理保存这个image对象……再或者，你可以创建一个隐藏的img标签悄悄地把这张图保存下来……对于用到大量纹理且纹理需要重复使用的时候更要注意，因为纹理是很占内存的。</p>
+<p>使用方式：(这里先提供较为简单的直接写入img标签的方式, 将用到上面的函数。)</p>
+<pre>
+//参数一为图片的url， 参数二为此图片写入的img标签的id，
+//参数三为图片加载好之后需要执行的函数。
+function loadImageByURL(url, imgID, imageOnLoad) {
+    var obj = document.createElement("img");
+    obj.id = imgID;
+    obj.onload = function() {
+        //createTextureByImgObject 由上面方法一里面给出
+        var texObj = createTextureByImgObject(this);
+        imageOnLoad(texObj);
+    }
+    obj.src = url;
+    obj.setAttribute("style", "display:none");
+    var body = document.getElementsByTagName("body").item(0);
+    body.appendChild(obj);
+}
+</pre>
+<p>上面的方法并不好用，并且也不直观。正确的方法应该是用户在运行程序之前就把需要加载的纹理资源全部或者说当前需要用到的部分加载完毕。因为js的回调看起来并不那么直观。上面的方法仅仅提供了一种思路，如果你要加载多张图片，希望你能想出更好的方法。后面的章节会提到更好的解决办法</p>
+<h2>第二步</h2>
+<p>有了纹理对象，那么接下来只要使用这个纹理对象，传递给我们的fragment shader就ok了。</p>
+<p>这个过程异常轻松，我们就直接写完吧。</p>
+<p>首先我们必须要有shader 代码, 本章用到的顶点着色器代码：</p>
+<pre>
+precision mediump float;
+attribute vec4 position;
+attribute vec4 inputTextureCoordinate;
+varying vec2 textureCoordinate;
+void main()
+{
+    gl_Position = position;
+    // 这是一种取巧的做法，强行把顶点坐标映射为纹理坐标，
+    // 但是仅适用于本章用到的刚好占满整个viewport的顶点哦。
+    textureCoordinate = vec2((position.x+1.0)/2.0, 1.0-(position.y+1.0)/2.0);
+}
+</pre>
+<p>本章用到的简单片元着色器代码：</p>
+<pre>
+//显示原图：
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+    gl_FragColor = texture2D(inputImageTexture, textureCoordinate);
+}
+
+//显示反色：
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+    gl_FragColor = vec4(1.0 - texture2D(inputImageTexture, textureCoordinate).rgb, 1.0);
+}
+
+//浮雕效果:
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform vec2 steps;
+const float stride = 2.0;
+void main()
+{
+    
+    vec3 tmpColor = texture2D(inputImageTexture, textureCoordinate + steps * stride).rgb;
+    tmpColor = texture2D(inputImageTexture, textureCoordinate).rgb - tmpColor + 0.5;
+    float f = (tmpColor.r + tmpColor.g + tmpColor.b) / 3.0;
+    gl_FragColor = vec4(f, f, f, 1.0);
+}
+
+//显示边缘：
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform vec2 steps;
+
+const float stride = 2.0;
+
+void main()
+{
+    
+    vec3 tmpColor = texture2D(inputImageTexture, textureCoordinate + steps * stride).rgb;
+    tmpColor = abs(texture2D(inputImageTexture, textureCoordinate).rgb - tmpColor);
+    gl_FragColor = vec4(tmpColor * 2.0, 1.0);
+}
+
+//波纹：
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform float motion;
+uniform float angle;
+
+void main()
+{
+    vec2 tmp = textureCoordinate;
+    tmp.x = tmp.x + 0.01 * sin(motion +  tmp.x * angle);
+    tmp.y = tmp.y + 0.01 * sin(motion +  tmp.y * angle);
+    gl_FragColor = texture2D(inputImageTexture, tmp);
+}
+</pre>
+<p>好了，有了着色器代码，我们就可以写调用代码了：</p>
+<pre>
+// 本期教程用到的顶点为下方顶点，为了节省篇幅，就写为全局了。
+var vertices = 
+[
+    1.0, 1.0,
+    1.0, -1.0,
+    -1.0, 1.0,
+    -1.0, -1.0
+];
+
+//参考上一期，我们依旧使用我们封装出来的函数，
+//但是renderWebGL 这个函数显然已经不能满足我们了，
+//我们需要提供更多的东西给WebGL。把这个函数整改一下。
+
+//直接绘制原图：
+function renderOrigin(){
+    // 读者可选择自己喜欢的加载方式，本教程为了方便，
+    // 选择html标签方式加载shader代码。
+    var vsh = getScriptTextByID("vsh_lesson3"); 
+    var fsh = getScriptTextByID("fsh_origin");  
+    //不能直接使用但是renderWebGL 这个函数，我们先抄下它的前几句。
+
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram("position");
+
+    var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+    webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, 2, webgl.FLOAT, false, 0, 0);
+
+    //在这里把我们的纹理交给WebGL:
+    var texObj = createTextureByImgID("vocaloid");
+	// 为了安全起见，在使用之前请绑定好纹理ID。
+    webgl.activeTexture(webgl.TEXTURE0); 
+    var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+    webgl.uniform1i(uniform, 0);
+
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
+}
+
+//绘制反色：
+function renderInverse(){
+    // 读者可选择自己喜欢的加载方式，本教程为了方便，
+    // 选择html标签方式加载shader代码。
+    var vsh = getScriptTextByID("vsh_lesson3"); 
+    var fsh = getScriptTextByID("fsh_inverse"); 
+    //不能直接使用但是renderWebGL 这个函数，我们先抄下它的前几句。
+
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram("position");
+
+    var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+    webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, 2, webgl.FLOAT, false, 0, 0);
+
+    //在这里把我们的纹理交给WebGL:
+    var texObj = createTextureByImgID("vocaloid");
+	// 为了安全起见，在使用之前请绑定好纹理ID。
+    webgl.activeTexture(webgl.TEXTURE0); 
+    var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+    webgl.uniform1i(uniform, 0);
+
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
+}
+
+//绘制浮雕：
+function renderEmboss(){
+    // 读者可选择自己喜欢的加载方式，本教程为了方便，
+    // 选择html标签方式加载shader代码。
+    var vsh = getScriptTextByID("vsh_lesson3"); 
+    var fsh = getScriptTextByID("fsh_emboss");  
+    //不能直接使用但是renderWebGL 这个函数，我们先抄下它的前几句。
+
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram("position");
+
+    var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+    webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, 2, webgl.FLOAT, false, 0, 0);
+
+    //在这里把我们的纹理交给WebGL:
+    var texObj = createTextureByImgID("vocaloid");
+	// 为了安全起见，在使用之前请绑定好纹理ID。
+    webgl.activeTexture(webgl.TEXTURE0); 
+    var uniformTex = webgl.getUniformLocation(programObject, "inputImageTexture");
+    webgl.uniform1i(uniformTex, 0);
+    //由于浮雕效果需要知道采样步长，所以传递此参数给shader。
+    var uniformSteps = webgl.getUniformLocation(programObject, "steps");
+    var cvsObj = document.getElementById("webglView");
+    webgl.uniform2f(uniformSteps, 1.0 / cvsObj.width, 1.0 / cvsObj.height);
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
+}
+
+//绘制边缘：
+function renderEdge(){
+    // 读者可选择自己喜欢的加载方式，本教程为了方便，
+    // 选择html标签方式加载shader代码。
+    var vsh = getScriptTextByID("vsh_lesson3"); 
+    var fsh = getScriptTextByID("fsh_edge");    
+    //不能直接使用但是renderWebGL 这个函数，我们先抄下它的前几句。
+
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram("position");
+
+    var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+    webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, 2, webgl.FLOAT, false, 0, 0);
+
+    //在这里把我们的纹理交给WebGL:
+    var texObj = createTextureByImgID("vocaloid");
+	// 为了安全起见，在使用之前请绑定好纹理ID。
+    webgl.activeTexture(webgl.TEXTURE0); 
+    var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+    webgl.uniform1i(uniform, 0);
+    //由于边缘效果需要知道采样步长，所以传递此参数给shader。
+    var uniformSteps = webgl.getUniformLocation(programObject, "steps");
+    var cvsObj = document.getElementById("webglView");
+    webgl.uniform2f(uniformSteps, 1.0 / cvsObj.width, 1.0 / cvsObj.height);
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
+}
+
+//波纹效果需要重绘，这里预留一个interval。
+var itv = {};
+
+//重绘wave
+function redrawWave() {
+    webgl.uniform1f(itv.uniformMotion, itv.motion += 0.05);
+    webgl.uniform1f(itv.uniformAngle, 15.0);
+    webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+    webgl.clear(webgl.COLOR_BUFFER_BIT);
+    webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, 4);
+    if (itv.motion > 1.0e20) itv.motion = 0.0;
+}
+
+//绘制波纹：
+function renderWave(){
+    // 读者可选择自己喜欢的加载方式，本教程为了方便，
+    // 选择html标签方式加载shader代码。
+    var vsh = getScriptTextByID("vsh_lesson3"); 
+    var fsh = getScriptTextByID("fsh_wave");    
+    //不能直接使用但是renderWebGL 这个函数，我们先抄下它的前几句。
+
+    webglInit();
+    shaderInitWithVertexAndFragmentShader(vsh, fsh);
+    initShaderProgram("position");
+
+    var buffer = webgl.createBuffer();
+    webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+    webgl.enableVertexAttribArray(v4PositionIndex);
+    webgl.vertexAttribPointer(v4PositionIndex, 2, webgl.FLOAT, false, 0, 0);
+
+    //在这里把我们的纹理交给WebGL:
+    var texObj = createTextureByImgID("vocaloid");
+	// 为了安全起见，在使用之前请绑定好纹理ID。
+    webgl.activeTexture(webgl.TEXTURE0);
+    var uniform = webgl.getUniformLocation(programObject, "inputImageTexture");
+    webgl.uniform1i(uniform, 0);
+
+    //wave效果需要使用motion和angle两个参数。
+    itv.uniformMotion = webgl.getUniformLocation(programObject, "motion");
+    itv.uniformAngle = webgl.getUniformLocation(programObject, "angle");
+    itv.motion = 0.0;
+    itv.interval = setInterval("redrawWave()", 15);
+}
+</pre>
+<h4>那么，讲了这么多，我们来看看本次的demo吧：</h4>
+<div>
+<style>
+.noborder{border:groove;background-color:#999;width:500px;}
+.divWithCanvas{background-color:#fff;width:100%;height:300px;}
+</style>
+
+<div class="noborder"><p>
+<div class="divWithCanvas" id="containerView"><canvas id="webglView" style="width:100%;height:100%"></canvas></div><br>
+
+<input type="button" value = "Origin" title="绘制原图" onclick="renderOrigin()">
+<input type="button" value = "Inverse" title="绘制反色" onclick="renderInverse()">
+<input type="button" value = "Emboss" title="绘制浮雕" onclick="renderEmboss()">
+<input type="button" value = "Edge" title="绘制边缘" onclick="renderEdge()">
+<input type="button" value = "Wave" title="绘制波纹" onclick="renderWave()">
+</p></div>
+<script id="vsh_lesson3" type="x-shader/x-vertex">
+precision mediump float;
+attribute vec4 position;
+attribute vec4 inputTextureCoordinate;
+varying vec2 textureCoordinate;
+void main()
+{
+    gl_Position = position;
+    // 这是一种取巧的做法，强行把顶点坐标映射为纹理坐标，
+    // 但是仅适用于本章用到的刚好占满整个viewport的顶点哦。
+    textureCoordinate = vec2((position.x+1.0)/2.0, 1.0-(position.y+1.0)/2.0);
+}
+</script>
+
+<script id="fsh_origin" type="x-shader/x-fragment">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+    gl_FragColor = texture2D(inputImageTexture, textureCoordinate);
+}
+</script>
+<script id="fsh_inverse" type="x-shader/x-fragment">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+    gl_FragColor = vec4(1.0 - texture2D(inputImageTexture, textureCoordinate).rgb, 1.0);
+}
+</script>
+<script id="fsh_emboss" type="x-shader/x-fragment">
+//浮雕效果:
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform vec2 steps;
+const float stride = 2.0;
+void main()
+{
+    
+    vec3 tmpColor = texture2D(inputImageTexture, textureCoordinate + steps * stride).rgb;
+    tmpColor = texture2D(inputImageTexture, textureCoordinate).rgb - tmpColor + 0.5;
+    float f = (tmpColor.r + tmpColor.g + tmpColor.b) / 3.0;
+    gl_FragColor = vec4(f, f, f, 1.0);
+}
+</script>
+<script id="fsh_edge" type="x-shader/x-fragment">
+//显示边缘：
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform vec2 steps;
+
+const float stride = 1.0;
+
+void main()
+{
+    
+    vec3 tmpColor = texture2D(inputImageTexture, textureCoordinate + steps * stride).rgb;
+    tmpColor = abs(texture2D(inputImageTexture, textureCoordinate).rgb - tmpColor);
+    gl_FragColor = vec4(tmpColor * 2.0, 1.0);
+}
+</script>
+<script id="fsh_wave" type="x-shader/x-fragment">
+//波纹：
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+uniform float motion;
+uniform float angle;
+
+void main()
+{
+    vec2 tmp = textureCoordinate;
+    tmp.x = tmp.x + 0.01 * sin(motion +  tmp.x * angle);
+    tmp.y = tmp.y + 0.01 * sin(motion +  tmp.y * angle);
+    gl_FragColor = texture2D(inputImageTexture, tmp);
+}
+</script>
+<script src="functions_lesson_3.js"></script>
+</div>
+<p>好的，第三期教程到此为止，请关注lesson 4。系列教程地址:webgl-lesson.wysaid.org</p>
 </body>
 </html>
