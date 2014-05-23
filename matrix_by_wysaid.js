@@ -520,7 +520,7 @@ WYMat4.projectM4 = function(obj, modelViewMat, projMat, viewport, winCoord)
 
 	winCoord.data[0] = viewport.data[0] + (1.0 + result.data[0]) * viewport.data[2] / 2.0;
 	winCoord.data[1] = viewport.data[1] + (1.0 + result.data[1]) * viewport.data[3] / 2.0;
-
-	winCoord.data[2] = (1.0 + result.data[2]) / 2.0;
+	if(winCoord.data[2])
+		winCoord.data[2] = (1.0 + result.data[2]) / 2.0;
 	return true;
 }
