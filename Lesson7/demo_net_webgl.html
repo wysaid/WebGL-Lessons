@@ -1,19 +1,57 @@
 <html>
 <head>
-	<title>Elasticity Mesh</title>
-	<meta charset="utf-8"/>
-	<style>
+<title>Elasticity Mesh</title>
+<meta charset="utf-8"/>
+<style>
+</style>
 
-	</style>
+<script type="x-shader/x-vertex" id="vshDeform">
+attribute vec2 vPosition;
+attribute vec2 vTexture;
+varying vec2 textureCoordinate;
+void main()
+{
+	//An opportunism code. Do not use it unless you know what it means.
+	gl_Position = vec4(vPosition * 2.0 - 1.0, 0.0, 1.0);
+	textureCoordinate = vTexture;
+}
+</script>
+
+<script type="x-shader/x-fragment" id="fshDeform">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+	gl_FragColor = texture2D(inputImageTexture, textureCoordinate);
+}
+</script>
+
+<script type="x-shader/x-fragment" id="fshMesh">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+	gl_FragColor.rgb = 1.0 - texture2D(inputImageTexture, textureCoordinate).rgb;
+	gl_FragColor.a = 1.0;
+}
+</script>
+
+<script type="text/javascript" src="demo_net.js" charset="utf-8"></script>
+<script type="text/javascript" src="webgl_functions.js" charset="utf-8"></script>
 </head>
 <body onresize="bodyResize()" onload="bodyResize()">
-
-<script src="demo_net.js" charset="utf-8"></script>
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp()" onmousemove="mouseMove(event)">
 <canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
 <input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"></div>
-<h1>如果您的浏览器无法流畅运行，请选择PC版： https://github.com/wysaid/EGE_Net</h1>
+
+<div style="border:groove;background-color:#ddd;width:750px;margin:20px;"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
+</textarea><br>
+<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"><input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"><input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+</div>
+
 <script>
 
 var isMouseDown = false;
