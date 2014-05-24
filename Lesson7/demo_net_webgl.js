@@ -7,7 +7,7 @@
 //为了便于区分函数名和类名，本文件所有类均以wy开头（轻吐槽@_@b
 //本文件仅包含网格处理部分，不包含渲染代码。
 
-var g_meshSize = [40, 30];
+var g_meshSize = [80, 60];
 
 function WYPointVector()
 {
