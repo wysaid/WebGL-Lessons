@@ -43,10 +43,12 @@ var meshIndexVBO = null;
 var textureVBO = null;
 var meshTexture = null;
 var meshIndexSize = 0;
-var bShowMesh = false;
+var bShowMesh = true;
 
 var programPositionName = "vPosition";
 var programTextureName = "vTexture";
+var cvsWidth;
+var cvsHeight;
 
 function webglInit() {
     var myCanvasObject = document.getElementById("webgl-lesson7"); //此处的webglView为你的canvas的id
@@ -60,7 +62,9 @@ function webglInit() {
 	
 	myCanvasObject.width = myDivObject.clientWidth; //千万注意，参见下面说明。
 	myCanvasObject.height = myDivObject.clientHeight; //同上
-    webgl.viewport(0, 0, myDivObject.clientWidth, myDivObject.clientHeight);//同上
+	cvsWidth = myCanvasObject.width;
+	cvsHeight = myCanvasObject.height;
+    webgl.viewport(0, 0, cvsWidth, cvsHeight);//同上
     return true;
 }
 
@@ -79,36 +83,6 @@ function createShaderWithString(shaderCode, shaderType)
 	}
 	return shaderObject;
 }
-
-// function initShaderProgram(positionName) {
-//     programObject = webgl.createProgram();
-//     webgl.attachShader(programObject, vertexShaderObject);
-//     webgl.attachShader(programObject, fragmentShaderObject);
-//     webgl.bindAttribLocation(programObject, v4PositionIndex, positionName);
-//     webgl.linkProgram(programObject);
-// 	if (!webgl.getProgramParameter(programObject, webgl.LINK_STATUS)) {
-//         appendLog(webgl.getProgramInfoLog(programObject));
-//         return;
-//     }
-//     webgl.useProgram(programObject);
-// }
-
-// function renderWebGL(vertices, vSize, vLen, vsh, fsh, positionName){
-//     webglInit();
-//     shaderInitWithVertexAndFragmentShader(vsh, fsh);
-//     initShaderProgram(positionName);
-
-// 	var buffer = webgl.createBuffer();
-//     webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
-//     webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
-
-// 	webgl.enableVertexAttribArray(v4PositionIndex);
-//     webgl.vertexAttribPointer(v4PositionIndex, vSize, webgl.FLOAT, false, 0, 0);
-
-//     webgl.clearColor(0.0, 0.0, 0.0, 1.0);
-//     webgl.clear(webgl.COLOR_BUFFER_BIT);
-//     webgl.drawArrays(webgl.TRIANGLE_STRIP, 0, vLen);
-// }
 
 function getScriptTextByID(scriptID){
 	var shaderScript = document.getElementById(scriptID);
@@ -277,7 +251,9 @@ function globalInitialize()
     		}
     	}
     }
-    webgl.bufferData(webgl.ELEMENT_ARRAY_BUFFER, new Int32Array(indexBufferData), webgl.STATIC_DRAW);
+    webgl.bufferData(webgl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexBufferData), webgl.STATIC_DRAW);
+
+    appendLog("当前网格强度:" + g_mesh.intensity);
 }
 
 function updateBuffer()
@@ -285,7 +261,7 @@ function updateBuffer()
 	if(meshVBO == null || meshVBO == 0)
 		return ;
 	webgl.bindBuffer(webgl.ARRAY_BUFFER, meshVBO);
-    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.DYNAMIC_DRAW);
+    webgl.bufferData(webgl.ARRAY_BUFFER, (g_mesh.mesh[g_mesh.layer]), webgl.DYNAMIC_DRAW);
 }
 
 function drawScene()
@@ -297,8 +273,10 @@ function drawScene()
 	webgl.bindTexture(webgl.TEXTURE_2D, meshTexture);
 
 	webgl.useProgram(deformProgram);
+	
 
 	webgl.bindBuffer(webgl.ARRAY_BUFFER, meshVBO);
+	webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.DYNAMIC_DRAW);
 	webgl.enableVertexAttribArray(deformProgramPositionIndex);
 	webgl.vertexAttribPointer(deformProgramPositionIndex, 2, webgl.FLOAT, false, 0, 0);
 
@@ -308,14 +286,15 @@ function drawScene()
 
 	webgl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, meshIndexVBO);
 
-	webgl.drawElements(webgl.TRIANGLES, meshIndexSize, webgl.UNSIGNED_INT, 0);
-
+	webgl.drawElements(webgl.TRIANGLES, meshIndexSize, webgl.UNSIGNED_SHORT, 0);
 
 	if(bShowMesh)
 	{
 		webgl.useProgram(meshProgram);
-		webgl.drawElements(webgl.TRIANGLES, meshIndexSize, webgl.UNSIGNED_INT, 0);
+		webgl.drawElements(webgl.LINE_STRIP, meshIndexSize, webgl.UNSIGNED_SHORT, 0);
 	}
+
+	webgl.finish();
 }
 
 

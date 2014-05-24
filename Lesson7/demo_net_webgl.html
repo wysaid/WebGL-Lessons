@@ -12,7 +12,7 @@ varying vec2 textureCoordinate;
 void main()
 {
 	//An opportunism code. Do not use it unless you know what it means.
-	gl_Position = vec4(vPosition * 2.0 - 1.0, 0.0, 1.0);
+	gl_Position = vec4(vec2(vPosition.x * 2.0 - 1.0, 1.0 - vPosition.y * 2.0), 0.0, 1.0);
 	textureCoordinate = vTexture;
 }
 </script>
@@ -38,14 +38,14 @@ void main()
 }
 </script>
 
-<script type="text/javascript" src="demo_net.js" charset="utf-8"></script>
+<script type="text/javascript" src="demo_net_webgl.js" charset="utf-8"></script>
 <script type="text/javascript" src="webgl_lesson7.js" charset="utf-8"></script>
 </head>
-<body onresize="bodyResize()" onload="globalInitialize()">
+<body onresize="bodyResize()" onload="globalInitialize();bodyResize();">
 
-<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp()" onmousemove="mouseMove(event)">
+<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
-<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"></div>
+<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="显示/隐藏网格(Hide/Show)" onclick = "bShowMesh = !bShowMesh;"></div>
 
 <div style="border:groove;background-color:#ddd;width:750px;margin:20px;"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
 </textarea><br>
@@ -55,18 +55,18 @@ void main()
 <script>
 
 var isMouseDown = false;
-var cvsWidth;
-var cvsHeight;
 var lastX, lastY;
 
 function netIntensityInc()
 {
 	g_mesh.intensityInc(0.005);
+	appendLog("当前网格强度:" + g_mesh.intensity);
 }
 
 function netIntensityDec()
 {
 	g_mesh.intensityDec(0.005);
+	appendLog("当前网格强度:" + g_mesh.intensity);
 }
 
 function mouseUp(evt)
@@ -128,6 +128,8 @@ function drawCanvas()
 	}
 
 	drawScene();
+
+	g_mesh.update();
 }
 
 function bodyResize()
@@ -140,10 +142,27 @@ function bodyResize()
 	cvsHeight = cvsObj.height;
 	webgl.viewport(0, 0, cvsObj.width, cvsObj.height);
 	drawCanvas();
+
 }
 
-//setInterval("drawCanvas()", 20);
+setInterval("drawCanvas()", 30);
 </script>
-<img src="1.jpg" id="meshTexture" style="display:none;">
+<script>
+function imageOnload() {
+	webglInit();
+	if(webgl == null)
+	{
+		appendLog("See more: http://get.webgl.org/");
+		return;
+	}
+	appendLog("WebGL is supported! That's cool!\nHere are some infomation for your device:");
+	appendLog("The max renderbuffer size your browser support: " + 	webgl.getParameter(webgl.MAX_RENDERBUFFER_SIZE));
+	appendLog("The max texture image units your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_IMAGE_UNITS));
+	appendLog("The max texture size your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_SIZE));
+	appendLog("The max cube map texture size your browser support: " + webgl.getParameter(webgl.MAX_CUBE_MAP_TEXTURE_SIZE));
+	appendLog("The max viewport dims your browser support: " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[0] + " x " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[1]);
+}
+</script>
+<img src="1.jpg" id="meshTexture" style="display:none;" onload="imageOnload()">
 </body>
 </html>
