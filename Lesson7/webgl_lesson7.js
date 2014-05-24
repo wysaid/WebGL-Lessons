@@ -32,13 +32,18 @@ function restoreLogbox() {
 var webgl = null;
 
 var deformProgram = null;
-var deformProgramPositionIndex = null;
-var deformProgramTextureIndex = null;
+var deformProgramPositionIndex = 0;
+var deformProgramTextureIndex = 1;
 var meshProgram = null;
-var meshProgramPositionIndex = null;
-var meshProgramTextureIndex = null;
+var meshProgramPositionIndex = 0;
+var meshProgramTextureIndex = 1;
 
-var meshVBO, meshIndexVBO, textureVBO;
+var meshVBO = null;
+var meshIndexVBO = null;
+var textureVBO = null;
+var meshTexture = null;
+var meshIndexSize = 0;
+var bShowMesh = false;
 
 var programPositionName = "vPosition";
 var programTextureName = "vTexture";
@@ -66,11 +71,13 @@ function createShaderWithString(shaderCode, shaderType)
 {
 	var shaderObject = webgl.createShader(shaderType);
 	webgl.shaderSource(shaderObject, shaderCode);
-	if(!webgl.getShaderParameter(shaderObject, shaderType))
+	webgl.compileShader(shaderObject);
+	if(!webgl.getShaderParameter(shaderObject, webgl.COMPILE_STATUS))
 	{
-		appendLog(webgl.getShaderInfoLog(vertexShaderObject));
-		return; 
+		appendLog(webgl.getShaderInfoLog(shaderObject));
+		return null;
 	}
+	return shaderObject;
 }
 
 // function initShaderProgram(positionName) {
@@ -169,10 +176,10 @@ function globalInitialize()
 	var vshDeformCode = getScriptTextByID("vshDeform");
 	var fshDeformCode = getScriptTextByID("fshDeform");
 	var vshDeformObj = createShaderWithString(vshDeformCode, webgl.VERTEX_SHADER);
-	var fshDeformObj = createShaderWithString(fshDeformCode. webgl.FRAGMENT_SHADER);
+	var fshDeformObj = createShaderWithString(fshDeformCode, webgl.FRAGMENT_SHADER);
 	deformProgram = webgl.createProgram();
-	webgl.attachShader(meshProgram, vshDeformObj);
-	webgl.attachShader(meshProgram, fshDeformObj);
+	webgl.attachShader(deformProgram, vshDeformObj);
+	webgl.attachShader(deformProgram, fshDeformObj);
 
 	//初始化网格显示program
 	var vshMeshCode = getScriptTextByID("vshDeform");
@@ -187,7 +194,7 @@ function globalInitialize()
 	webgl.bindAttribLocation(deformProgram, deformProgramPositionIndex, programPositionName);
 	webgl.bindAttribLocation(meshProgram, meshProgramPositionIndex, programPositionName);
 
-	webgl.bindAttribLocation(deformProgram. deformProgramTextureIndex, programTextureName);
+	webgl.bindAttribLocation(deformProgram, deformProgramTextureIndex, programTextureName);
 	webgl.bindAttribLocation(meshProgram, meshProgramTextureIndex, programTextureName);
 
 	webgl.linkProgram(deformProgram);
@@ -205,6 +212,21 @@ function globalInitialize()
         return;
     }
 
+    //创建纹理
+    meshTexture = createTextureByImgID("meshTexture");
+
+    //绑定纹理
+    webgl.activeTexture(webgl.TEXTURE0);
+	webgl.bindTexture(webgl.TEXTURE_2D, meshTexture);
+
+    webgl.useProgram(meshProgram);	
+	var texUniform = webgl.getUniformLocation(meshProgram, "inputImageTexture");
+	webgl.uniform1i(texUniform, 0);
+
+	webgl.useProgram(deformProgram);
+	texUniform = webgl.getUniformLocation(deformProgram, "inputImageTexture");
+	webgl.uniform1i(texUniform, 0);
+
     meshVBO = webgl.createBuffer();
     meshIndexVBO = webgl.createBuffer();
     textureVBO = webgl.createBuffer();
@@ -216,7 +238,9 @@ function globalInitialize()
     webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.STATIC_DRAW);
 
     webgl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, meshIndexVBO);
-    var indexBufferData = new Array((g_meshSize[0] - 1) * (g_meshSize[1] - 1) * 2 * 3);
+
+    meshIndexSize = (g_meshSize[0] - 1) * (g_meshSize[1] - 1) * 2 * 3;
+    var indexBufferData = new Array(meshIndexSize);
 
     var index = 0;
 
@@ -254,14 +278,45 @@ function globalInitialize()
     	}
     }
     webgl.bufferData(webgl.ELEMENT_ARRAY_BUFFER, new Int32Array(indexBufferData), webgl.STATIC_DRAW);
-
-    
-
 }
 
+function updateBuffer()
+{
+	if(meshVBO == null || meshVBO == 0)
+		return ;
+	webgl.bindBuffer(webgl.ARRAY_BUFFER, meshVBO);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.DYNAMIC_DRAW);
+}
+
+function drawScene()
+{
+	if(meshVBO == null || meshVBO == 0)
+		return ;
+	
+	webgl.activeTexture(webgl.TEXTURE0);
+	webgl.bindTexture(webgl.TEXTURE_2D, meshTexture);
+
+	webgl.useProgram(deformProgram);
+
+	webgl.bindBuffer(webgl.ARRAY_BUFFER, meshVBO);
+	webgl.enableVertexAttribArray(deformProgramPositionIndex);
+	webgl.vertexAttribPointer(deformProgramPositionIndex, 2, webgl.FLOAT, false, 0, 0);
+
+	webgl.bindBuffer(webgl.ARRAY_BUFFER, textureVBO);
+	webgl.enableVertexAttribArray(deformProgramTextureIndex);
+	webgl.vertexAttribPointer(deformProgramTextureIndex, 2, webgl.FLOAT, false, 0, 0);
+
+	webgl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, meshIndexVBO);
+
+	webgl.drawElements(webgl.TRIANGLES, meshIndexSize, webgl.UNSIGNED_INT, 0);
 
 
-
+	if(bShowMesh)
+	{
+		webgl.useProgram(meshProgram);
+		webgl.drawElements(webgl.TRIANGLES, meshIndexSize, webgl.UNSIGNED_INT, 0);
+	}
+}
 
 
 
