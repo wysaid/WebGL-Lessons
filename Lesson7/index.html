@@ -96,12 +96,23 @@ webgl.bindBuffer函数的第一个参数支持且仅支持这两个参数。 桌
 <p>由此可见，webgl.bufferData函数包含三个参数， 第一个参数为webgl.ARRAY_BUFFER或webgl.ELEMENT_ARRAY_BUFFER，
 <br>
 第二个参数为buffer数据，通常为 Float*Array 或者 Uint*Array 系列数组 (此处的* 代表 64, 32, 16, 8).<br>
-通常 ARRAY_BUFFER 将使用 Float*Array 而 ELEMENT_ARRAY_BUFFER 必须使用 Uint*Array。
+通常 ARRAY_BUFFER 将使用 Float*Array 而 ELEMENT_ARRAY_BUFFER 必须使用 Uint*Array。 （请不要直接使用js里面的Array数组， 因为它可能是数据没有对齐的, Array数组中的对象可能有不同的类型）
 <b><font color="red">需要特别注意的是， 就目前来看，WebGL在使用 ELEMENT_ARRAY_BUFFER 时，不得使用精度超过 Uint16Array。</font></b> 本章demo在编写时，习惯性地使用了 Uint32Array，导致Chrome (版本：34.0.1847.131 m) 一直对此报错。而改为 Uint16Array 之后运行正常，希望引起您的注意。（猜测原因可能是WebGL暂时还不能支持太大量的ARRAY_BUFFER数据从而限制了索引大小）
 </p>
 <p>
-
+第三个参数为buffer数据的使用方式， 通常这一步跟性能有关。根据对数据使用情况的不同， OpenGL可能对数据进行一些优化，当然，<font color="blue">你如果不关心这些的话，看心情随便写一个也是可以的。</font>
+这里贴一点khronos.org官方解释，希望了解的请自己点击下面的链接：</p>
+<p><font color="green">usage is a hint to the GL implementation as to how a buffer object's data store will be accessed. This enables the GL implementation to make more intelligent decisions that may significantly impact buffer object performance. It does not, however, constrain the actual usage of the data store. usage can be broken down into two parts: first, the frequency of access (modification and usage), and second, the nature of that access. </font><br>(From: http://www.khronos.org/opengles/sdk/docs/man/xhtml/glBufferData.xml)</p>
+<p>bufferUsage有三种可能值：</p>
+<p><font color="blue">webgl.DYNAMIC_DRAW: </font> 动态绘制模式， 缓冲区对象中的数据需要常常更新和使用 (webgl.bufferData函数会频繁调用), 这种模式下，OpenGL会将数据放置在能够快速更新和使用的地方。例：绘制了一个面包，当你不去碰它时，它的每一帧绘制不会更改，不需要bufferData更新，但是一旦被咬或者挤压就会变形，如果被不断撕咬则持续更新bufferData</p>
+<p><font color="blue">webgl.STATIC_DRAW: </font> 静态绘制模式， 缓冲区对象中的数据只指定1次，但是常常使用。这种模式下，OpenGL会将数据防止在能够快速渲染的地方。例： 绘制一堵无法被破坏的墙， 那么每一帧它都不会变。本章的demo中，<b>纹理采样顶点缓冲区</b>和<b>网格顶点索引缓冲区</b>不曾有变化，适合这种情况。</p>
+<p><font color="blue">webgl.STREAM_DRAW: </font> 流绘制模式， 缓冲区对象中的数据只指定1次，并且也不经常使用。 <br>
+一些人对STREAM_DRAW了解较不清楚，这里特别讲一下。先是苹果官方对于它的解释：<br>
+<font color="green">GL_STREAM_DRAW is used when your application needs to create transient geometry that is rendered and then discarded. This is most useful when your application must dynamically change vertex data every frame in a way that cannot be performed in a vertex shader. To use a stream vertex buffer, your application initially fills the buffer using glBufferData, then alternates between drawing using the buffer and modifying the buffer.</font>（From: https://developer.apple.com/library/mac/documentation/graphicsimaging/conceptual/opengl-macprogguide/opengl_vertexdata/opengl_vertexdata.html#//apple_ref/doc/uid/TP40001987-CH406-SW9）<br>
+我来翻译一下， 这段话的意思大致为， STREAM_DRAW的应用场景为几乎每一次 webgl.bindBuffer使用后都需要使用 webgl.bufferData 更新一遍数据的情况，就比如本章demo中<b>网格顶点缓冲区</b>数据的情况。
 </p>
+
+<p>前面说了，如果不关心这些，可以随便写一个，bufferUsage参数只是对于OpenGL的一种暗示，并不一定非得按照描述的那样吻合才行。你填写任何一个都能正确运行，只是性能上可能存在一定差异。 对于，介于一些强迫症患者一定非得找到属于自己的style，我的建议时，不要纠结描述，直接把三种方式全部试一遍，哪种最快，帧率最高就用哪个吧，其他的都是浮云。</p>
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="drawWithWebGL=true;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>

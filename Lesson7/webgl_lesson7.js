@@ -204,7 +204,7 @@ function globalInitialize()
     textureVBO = webgl.createBuffer();
 
     webgl.bindBuffer(webgl.ARRAY_BUFFER, meshVBO);
-    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.DYNAMIC_DRAW);
+    webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.STREAM_DRAW);
 
 	webgl.bindBuffer(webgl.ARRAY_BUFFER, textureVBO);
     webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(g_mesh.mesh[g_mesh.layer]), webgl.STATIC_DRAW);
