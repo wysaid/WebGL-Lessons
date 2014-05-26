@@ -295,11 +295,43 @@ function drawScene()
 	webgl.finish();
 }
 
+//下面是一些本章专用辅助函数
 
+function drawCanvas()
+{
+	if(isMouseDown)
+	{
+		g_mesh.catchPoint(lastX / cvsWidth, lastY / cvsHeight);
+	}
 
+	drawScene();
 
+	g_mesh.update();
+}
 
+function bodyResize()
+{
+	var divObj = document.getElementById("canvas_father");
+	var cvsObj = document.getElementById("webgl-lesson7");
+	cvsObj.width = divObj.clientWidth;
+	cvsObj.height = divObj.clientHeight;
+	cvsWidth = cvsObj.width;
+	cvsHeight = cvsObj.height;
+	webgl.viewport(0, 0, cvsObj.width, cvsObj.height);
+	drawCanvas();
+}
 
-
-
-
+function imageOnload() {
+	webglInit();
+	if(webgl == null)
+	{
+		appendLog("See more: http://get.webgl.org/");
+		return;
+	}
+	appendLog("WebGL is supported! That's cool!\nHere are some information for your device:");
+	appendLog("The max renderbuffer size your browser support: " + 	webgl.getParameter(webgl.MAX_RENDERBUFFER_SIZE));
+	appendLog("The max texture image units your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_IMAGE_UNITS));
+	appendLog("The max texture size your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_SIZE));
+	appendLog("The max cube map texture size your browser support: " + webgl.getParameter(webgl.MAX_CUBE_MAP_TEXTURE_SIZE));
+	appendLog("The max viewport dims your browser support: " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[0] + " x " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[1]);
+}
