@@ -47,8 +47,6 @@ var bShowMesh = true;
 
 var programPositionName = "vPosition";
 var programTextureName = "vTexture";
-var cvsWidth;
-var cvsHeight;
 
 function webglInit() {
     var myCanvasObject = document.getElementById("webgl-lesson7"); //此处的webglView为你的canvas的id

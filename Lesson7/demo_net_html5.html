@@ -5,126 +5,22 @@
 	<style>
 
 	</style>
-	<script src="demo_net.js" charset="utf-8"></script>
+	<script type="text/javascript" src="demo_net.js" charset="utf-8"></script>
+	<script type="text/javascript" src="demo_net_mouse.js" charset="utf-8"></script>
+	<script type="text/javascript" src="demo_net_html5.js" charset="utf-8"></script>
 </head>
-<body onresize="bodyResize()" onload="bodyResize()">
+<body onresize="bodyResize_html5()" onload="bodyResize_html5()">
 <h2>如果您的浏览器无法流畅运行，请选择PC版： <a href="https://github.com/wysaid/EGE_Net" target="_blank">https://github.com/wysaid/EGE_Net</a></h2>
-<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
-<canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
+<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father_html5" onmousedown="mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
+<canvas id="webgl_lesson7_html5" style="width:100%;height:100%;position:relative;"></canvas></div>
 <input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"></div>
 
 <script>
 
-var isMouseDown = false;
-var cvsWidth;
-var cvsHeight;
-var lastX, lastY;
-
-function netIntensityInc()
-{
-	g_mesh.intensityInc(0.005);
-}
-
-function netIntensityDec()
-{
-	g_mesh.intensityDec(0.005);
-}
-
-function mouseUp(evt)
-{
-	isMouseDown = false;
-	g_mesh.releasePoint();
-}
-
-function mouseDown(evt)
-{
-	isMouseDown = true;	
-	lastX = evt.offsetX == null ? evt.layerX : evt.offsetX;
-	lastY = evt.offsetY == null ? evt.layerY : evt.offsetY;
-	g_mesh.catchPoint(lastX / cvsWidth, lastY / cvsHeight);
-}
-
-function mouseMove(evt)
-{
-	if(!isMouseDown)
-		return ;
-	lastX = evt.offsetX == null ? evt.layerX : evt.offsetX;
-	lastY = evt.offsetY == null ? evt.layerY : evt.offsetY;
-}
-
-function drawMesh(ctx, meshObj)
-{
-	var mesh = meshObj.mesh[meshObj.layer];
-	var meshWidth = meshObj.width;
-	var meshHeight = meshObj.height;
-	for(var i = 0; i < meshHeight; ++i)
-	{
-		var k = i * meshWidth;
-		for(var j = 1; j < meshWidth; ++j)
-		{
-			var h = k + j;
-			ctx.moveTo(mesh[h - 1].x * cvsWidth, mesh[h - 1].y * cvsHeight);
-			ctx.lineTo(mesh[h].x * cvsWidth, mesh[h].y * cvsHeight);
-		}
-	}
-
-	for(var i = 0; i < meshWidth; ++i)
-	{
-		for(var j = 1; j < meshHeight; ++j)
-		{
-			var h2 = j * meshWidth + i;
-			var h1 = (j - 1) * meshWidth + i;
-			ctx.moveTo(mesh[h1].x * cvsWidth, mesh[h1].y * cvsHeight);
-			ctx.lineTo(mesh[h2].x * cvsWidth, mesh[h2].y * cvsHeight);
-		}
-	}
-
-}
-
-function drawCanvas(objID)
-{
-	if(isMouseDown)
-	{
-		g_mesh.catchPoint(lastX / cvsWidth, lastY / cvsHeight);
-	}
-
-	var cvsObj = document.getElementById(objID);
-	var cvsContext = cvsObj.getContext("2d");
-	cvsContext.fillStyle = "#fff";
-	cvsContext.clearRect(0, 0, cvsWidth, cvsHeight);
-
-	cvsContext.beginPath();
-	cvsContext.strokeStyle = "#0f0";
-	drawMesh(cvsContext, g_mesh);
-	cvsContext.fillText("当前网格强度: " + g_mesh.intensity + ". Author URL: http://blog.wysaid.org", 20, 20);
-	cvsContext.stroke();
-	cvsContext.closePath();
-	g_mesh.update();
-}
-
-function bodyResize()
-{
-	var divObj = document.getElementById("canvas_father");
-	var cvsObj = document.getElementById("webgl-lesson7");
-	cvsObj.width = divObj.clientWidth;
-	cvsObj.height = divObj.clientHeight;
-	cvsWidth = cvsObj.width;
-	cvsHeight = cvsObj.height;
-	drawCanvas('webgl-lesson7')
-}
-
-setInterval("drawCanvas('webgl-lesson7')", 20);
+setInterval("drawCanvas_html5('webgl_lesson7_html5')", 20);
 </script>
 </body>
 <div style="display:none;" id="trackingCodes">
-<script type="text/javascript">
-var codeArea = document.getElementById("trackingCodes");
-var tagTencent = document.createElement("script");
-tagTencent.setAttribute("type", "text/javascript");
-tagTencent.src = "http://tajs.qq.com/stats?sId=23413950";
-tagTencent.charset = "UTF-8";
-codeArea.appendChild(tagTencent);
-</script>
 
 <script type="text/javascript">
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -138,6 +34,8 @@ codeArea.appendChild(tagTencent);
 <script type="text/javascript">
 var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
 document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fb1b964c80dff2a1af1bb8b1ee3e9a7d1' type='text/javascript'%3E%3C/script%3E"));
+
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "tajs.qq.com/stats?sId=23413950' type='text/javascript'%3E%3C/script%3E"));
 </script>
 
 </div>
