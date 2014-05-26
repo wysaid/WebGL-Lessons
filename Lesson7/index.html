@@ -59,7 +59,7 @@ function drawUpdate()
 <h1>第七话， 了解OpenGL的几种Array Buffer，实现大量顶点的批量绘制， 以及映射纹理坐标</h1>
 <p>每一话都间隔很久，其实早就可以更新了，但是一直偷懒，实在不好意思。<br>
 本来想第七话讲一讲绘制茶壶之类的东西，但是刚好前几天做了个小的网格demo，还是这种原创的东西比较讨喜，就拿这个来作为本次的蓝本吧<br>
-废话就到这里，这一次的demo是下面这个样子的：（请用鼠标拖拽网格）</p>
+废话就到这里，这一次的demo原型是下面这个样子的，但是下面是html5做的，现在要使用WebGL，并且做得更加好看：（请用鼠标拖拽网格）</p>
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:820px;height:670px;"><div style="margin:10px 0;position:relative;width:100%;height:620px;background-color: #100;" id="canvas_father_html5" onmousedown="drawWithWebGL=false;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl_lesson7_html5" style="width:100%;height:100%;position:relative;"></canvas></div>
 <input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"></div>
