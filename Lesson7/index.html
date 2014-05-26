@@ -4,6 +4,38 @@
 <head>
 <meta charset="utf-8" />
 <title>WebGL Lesson 7 - wysaid</title>
+<script type="x-shader/x-vertex" id="vshDeform">
+attribute vec2 vPosition;
+attribute vec2 vTexture;
+varying vec2 textureCoordinate;
+void main()
+{
+	//An opportunism code. Do not use it unless you know what it means.
+	gl_Position = vec4(vec2(vPosition.x * 2.0 - 1.0, 1.0 - vPosition.y * 2.0), 0.0, 1.0);
+	textureCoordinate = vTexture;
+}
+</script>
+
+<script type="x-shader/x-fragment" id="fshDeform">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+	gl_FragColor = texture2D(inputImageTexture, textureCoordinate);
+}
+</script>
+
+<script type="x-shader/x-fragment" id="fshMesh">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+	gl_FragColor.rgb = 1.0 - texture2D(inputImageTexture, textureCoordinate).rgb;
+	gl_FragColor.a = 1.0;
+}
+</script>
 <script type="text/javascript" src="demo_net.js" charset="utf-8"></script>
 <script type="text/javascript" src="demo_net_mouse.js" charset="utf-8"></script>
 <script type="text/javascript" src="demo_net_html5.js" charset="utf-8"></script>
@@ -34,7 +66,15 @@ function drawUpdate()
 
 <h1>接下来进入正题</h1>
 
+<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="drawWithWebGL=true;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
+<canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
+<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec();appendLog('当前网格强度:' + g_mesh.intensity);"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc();appendLog('当前网格强度:' + g_mesh.intensity);"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="显示/隐藏网格(Hide/Show)" onclick = "bShowMesh = !bShowMesh;"></div>
+<div style="border:groove;background-color:#ddd;width:750px;margin:20px;"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
+</textarea><br>
+<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"><input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"><input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+</div>
 
+<img src="2.jpg" id="meshTexture" style="display:none;" onload="imageOnload();">
 
 </body>
 
