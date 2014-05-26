@@ -59,12 +59,49 @@ function drawUpdate()
 <h1>第七话， 了解OpenGL的几种Array Buffer，实现大量顶点的批量绘制， 以及映射纹理坐标</h1>
 <p>每一话都间隔很久，其实早就可以更新了，但是一直偷懒，实在不好意思。<br>
 本来想第七话讲一讲绘制茶壶之类的东西，但是刚好前几天做了个小的网格demo，还是这种原创的东西比较讨喜，就拿这个来作为本次的蓝本吧<br>
-废话就到这里，这一次的demo是下面这个样子的：</p>
+废话就到这里，这一次的demo是下面这个样子的：（请用鼠标拖拽网格）</p>
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:820px;height:670px;"><div style="margin:10px 0;position:relative;width:100%;height:620px;background-color: #100;" id="canvas_father_html5" onmousedown="drawWithWebGL=false;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl_lesson7_html5" style="width:100%;height:100%;position:relative;"></canvas></div>
 <input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"></div>
 
-<h1>接下来进入正题</h1>
+<p><input type="button" value="点我放大查看demo" style="width:200px;height:50px;" onclick="window.open('http://webgl-lesson.wysaid.org/Lesson7/demo_net_html5.html', '_blank', 'toolbar=no, width=1000, height=800, location=no')"></p>
+
+<h3>ＴＡＲＧＥＴ：</h3>
+<p>
+如果你还记得我们前面几章的内容的话，应该知道，通常我们绘制部分会有类似于下面的代码：
+</p>
+<pre>
+var buffer = webgl.createBuffer();
+webgl.bindBuffer(webgl.ARRAY_BUFFER, buffer);
+webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(vertices), webgl.STATIC_DRAW);
+
+webgl.enableVertexAttribArray(v4PositionIndex);
+webgl.vertexAttribPointer(v4PositionIndex, vSize, webgl.FLOAT, false, 0, 0);
+</pre>
+<p>
+前面一直没有解释过为什么要这样用，本章将对此作出一些解释。并以此为主要功能制作一个小demo.
+</p>
+
+<h2>GL_ARRAY_BUFFER和GL_ELEMENT_ARRAY_BUFFER</h2>
+
+<p><b><font color="blue">假设本章讲到的WebGL的Context对象就叫webgl</font></b>，那么webgl.ARRAY_BUFFER和webgl.ELEMENT_ARRAY_BUFFER就分别指的GL_ARRAY_BUFFER和GL_ELEMENT_ARRAY_BUFFER这两个东西了。
+webgl.bindBuffer函数的第一个参数支持且仅支持这两个参数。 桌面OpenGL中支持更多扩展但跟这里无关，不做任何解释。
+<br>这两个参数分别代表了绑定顶点缓冲区对象和顶点索引缓冲区对象。
+<br>而缓冲区对象则是通过webgl.createBuffer() 函数来创建的。 <font color="red">需要注意的是，缓冲区对象(buffer object)创建时并不需要指定其类型，而是在这个缓冲区对象第一次被绑定时，根据绑定时的第一个参数确定其真正的类型。</font>
+<br>
+</p>
+<p><font color="green">通常，我们把这两种缓冲区对象均称作VBO (Vertex Buffer Object).</font> 同时提一下， OpenGL ES 2.0并不支持VAO，所以这里不做讨论</p>
+<p>有了创建和绑定，接下来当然需要上传数据了， 上传数据使用的函数叫： webgl.bufferData， 在OpenGL中函数原型大致为：</p>
+<pre>function bufferData(bufferKind, bufferData, bufferUsage)</pre>
+<p>由此可见，webgl.bufferData函数包含三个参数， 第一个参数为webgl.ARRAY_BUFFER或webgl.ELEMENT_ARRAY_BUFFER，
+<br>
+第二个参数为buffer数据，通常为 Float*Array 或者 Uint*Array 系列数组 (此处的* 代表 64, 32, 16, 8).<br>
+通常 ARRAY_BUFFER 将使用 Float*Array 而 ELEMENT_ARRAY_BUFFER 必须使用 Uint*Array。
+<b><font color="red">需要特别注意的是， 就目前来看，WebGL在使用 ELEMENT_ARRAY_BUFFER 时，不得使用精度超过 Uint16Array。</font></b> 本章demo在编写时，习惯性地使用了 Uint32Array，导致Chrome (版本：34.0.1847.131 m) 一直对此报错。而改为 Uint16Array 之后运行正常，希望引起您的注意。（猜测原因可能是WebGL暂时还不能支持太大量的ARRAY_BUFFER数据从而限制了索引大小）
+</p>
+<p>
+
+</p>
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="drawWithWebGL=true;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
