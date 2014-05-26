@@ -9,9 +9,10 @@ function drawMesh_html5(ctx, meshObj)
 		var k = i * meshWidth;
 		for(var j = 1; j < meshWidth; ++j)
 		{
-			var h = k + j;
-			ctx.moveTo(mesh[h - 1].x * cvsWidth, mesh[h - 1].y * cvsHeight);
-			ctx.lineTo(mesh[h].x * cvsWidth, mesh[h].y * cvsHeight);
+			var h2 = (k + j) * 2;
+			var h1 = h2 - 2;
+			ctx.moveTo(mesh[h1] * cvsWidth, mesh[h1 + 1] * cvsHeight);
+			ctx.lineTo(mesh[h2] * cvsWidth, mesh[h2 + 1] * cvsHeight);
 		}
 	}
 
@@ -19,10 +20,10 @@ function drawMesh_html5(ctx, meshObj)
 	{
 		for(var j = 1; j < meshHeight; ++j)
 		{
-			var h2 = j * meshWidth + i;
-			var h1 = (j - 1) * meshWidth + i;
-			ctx.moveTo(mesh[h1].x * cvsWidth, mesh[h1].y * cvsHeight);
-			ctx.lineTo(mesh[h2].x * cvsWidth, mesh[h2].y * cvsHeight);
+			var h2 = (j * meshWidth + i) * 2;
+			var h1 = ((j - 1) * meshWidth + i) * 2;
+			ctx.moveTo(mesh[h1] * cvsWidth, mesh[h1 + 1] * cvsHeight);
+			ctx.lineTo(mesh[h2] * cvsWidth, mesh[h2 + 1] * cvsHeight);
 		}
 	}
 

@@ -6,11 +6,15 @@
 
 //为了便于区分函数名和类名，本文件所有类均以wy开头（轻吐槽@_@b
 //本文件仅包含网格处理部分，不包含渲染代码。
+//本章代码并未用到此文件，因为这个版本的mesh数据不适合在webgl中使用
+//但是这个文件的mesh处理代码较容易看懂，所以保留之，供君参考
 
 var g_meshSize = [80, 60];
 
-function WYPointVector()
+function WYPoint(vx, vy)
 {
+	this.x = vx;
+	this.y = vy;
 	this.dx = 0.0;
 	this.dy = 0.0;
 }
@@ -18,7 +22,6 @@ function WYPointVector()
 function WYMesh()
 {
 	this.mesh = new Array(2);
-	this.meshAcc = null;
 	this.layer = 0;
 	this.width = 0;
 	this.height = 0;
@@ -32,10 +35,8 @@ function WYMesh()
 
 		this.width = w;
 		this.height = h;
-		this.mesh[0] = new Array(w * h * 2);
-		this.mesh[1] = new Array(w * h * 2);
-		this.meshAcc = new Array(w * h);
-
+		this.mesh[0] = new Array(w * h);
+		this.mesh[1] = new Array(w * h);
 		var widthStep = 1.0 / (w - 1.0);
 		var heightStep = 1.0 / (h - 1.0);
 
@@ -46,13 +47,8 @@ function WYMesh()
 			for(var j = 0; j < w; ++j)
 			{
 				var widthJ = j * widthStep;
-				this.mesh[0][index * 2] = widthJ;
-				this.mesh[0][index * 2 + 1] = heightI;
-
-				this.mesh[1][index * 2] = widthJ;
-				this.mesh[1][index * 2 + 1] = heightI;
-
-				this.meshAcc[index] = new WYPointVector();
+				this.mesh[0][index] = new WYPoint(widthJ, heightI);
+				this.mesh[1][index] = new WYPoint(widthJ, heightI);
 				++index;
 			}
 		}
@@ -78,31 +74,33 @@ function WYMesh()
 			for(var j = 1; j < widthM1; ++j)
 			{
 				var h = k + j;
-				var h2 = h * 2;
 				var dx, dy;
-				var pntUp, pntDown, pntLeft, pntRight;
-				pntDown = (h + width) * 2;
-				pntUp = (h - width) * 2;
-				pntLeft = (h - 1) * 2;
-				pntRight = (h + 1) * 2;
+				var pnt, pntUp, pntDown, pntLeft, pntRight;
+				pnt = thismesh[h];
+				pntDown = thismesh[h + width];
+				pntUp = thismesh[h - width];
+				pntLeft = thismesh[h - 1];
+				pntRight = thismesh[h + 1];
 
-				dx = thismesh[pntLeft]  + thismesh[pntRight] - thismesh[h2] * 2.0;
-				dy = thismesh[pntLeft + 1]  + thismesh[pntRight + 1] - thismesh[h2 + 1] * 2.0;
+				dx = pntLeft.x + pntRight.x - pnt.x * 2.0;
+				dy = pntLeft.y + pntRight.y - pnt.y * 2.0;
 
-				dx += thismesh[pntUp]  + thismesh[pntDown] - thismesh[h2] * 2.0;
-				dy += thismesh[pntUp + 1]  + thismesh[pntDown + 1] - thismesh[h2 + 1] * 2.0;
+				dx += pntUp.x + pntDown.x - pnt.x * 2.0;
+				dy += pntUp.y + pntDown.y - pnt.y * 2.0;
 
 				//模拟能量损失， 当加速度方向与速度方向相反时加快减速。
-				if(dx * this.meshAcc[h].dx < 0.0)
+				if(dx * pnt.dx < 0.0)
 					dx *= 1.0 + this.intensity;
-				if(dy * this.meshAcc[h].dy < 0.0)
+				if(dy * pnt.dy < 0.0)
 					dy *= 1.0 + this.intensity;
 
-				this.meshAcc[h].dx += dx * this.intensity;
-				this.meshAcc[h].dy += dy * this.intensity;
+				pnt.dx += dx * this.intensity;
+				pnt.dy += dy * this.intensity;
+				nextmesh[h].dx = pnt.dx;
+				nextmesh[h].dy = pnt.dy;
 
-				nextmesh[h2] = thismesh[h2] + this.meshAcc[h].dx;
-				nextmesh[h2 + 1] = thismesh[h2 + 1] + this.meshAcc[h].dy;
+				nextmesh[h].x = pnt.x + pnt.dx;
+				nextmesh[h].y = pnt.y + pnt.dy;
 
 			}
 		}
@@ -124,8 +122,8 @@ function WYMesh()
 				var k = this.width * i;
 				for(var j = 1; j < widthM1; ++j)
 				{
-					var h = (k + j) * 2;
-					var dis = Math.abs(x - thismesh[h]) + Math.abs(y - thismesh[h + 1]);
+					var h = k + j;
+					var dis = Math.abs(x - thismesh[h].x) + Math.abs(y - thismesh[h].y);
 					if(dis < mdis)
 					{
 						pointIndex = h;
@@ -133,7 +131,7 @@ function WYMesh()
 					}
 				}
 			}
-			this.lastPoint = parseInt(pointIndex);
+			this.lastPoint = pointIndex;
 		}
 		else
 			pointIndex = this.lastPoint;
@@ -141,13 +139,15 @@ function WYMesh()
 		var mesh0 = this.mesh[0];
 		var mesh1 = this.mesh[1];
 
-		mesh0[pointIndex] = x;
-		mesh0[pointIndex + 1] = y;
-		mesh1[pointIndex] = x;
-		mesh1[pointIndex + 1] = y;
+		mesh0[pointIndex].x = x;
+		mesh0[pointIndex].y = y;
+		mesh1[pointIndex].x = x;
+		mesh1[pointIndex].y = y;
 
-		this.meshAcc[pointIndex / 2].dx = 0.0;
-		this.meshAcc[pointIndex / 2].dy = 0.0;
+		mesh0[pointIndex].dx = 0.0;
+		mesh0[pointIndex].dy = 0.0;
+		mesh1[pointIndex].dx = 0.0;
+		mesh1[pointIndex].dy = 0.0;
 	}
 
 	this.releasePoint = function()
