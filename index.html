@@ -4,7 +4,7 @@
     <title>WebGL Simple Lesson - by wysaid</title>
     <script type="text/javascript">
         var gLessonCnt = 10;
-        var gFrameHeight = "5000px";
+        var gFrameHeight = "100%";
     </script>
 </head>
 <body>
@@ -16,24 +16,17 @@
             for(var i = 1; i <= gLessonCnt; ++i)
             {
                 var item = document.createElement("p");
-                var text = "<h2><a href = './Lesson" + i + "/index.html' target='lessons'>Lesson " + i + "</a></h2>"
+                var text = "<h2><a href = './Lesson" + i + "/index.html' target='lessons'>Lesson " + i + "</a></h2>";
                 item.setAttribute("style", "text-align:left;background-color: #abcdef; margin 10px;");
                 item.innerHTML = text;
                 lessonObj.appendChild(item);
             }
         </script>
     </div>
-    <div style="top:0px;left:0px;position:absolute; width:800px;height:700px; border:groove;margin:20px auto auto 300px; background-color:#d0d0d0" id="itemView">
-        <script type="text/javascript">
-            var itemObj = document.getElementById("itemView");
-            itemObj.style.maxHeight = gFrameHeight;
-        </script>
+    <div style="top:0px;left:0px;position:absolute; width:900px;height:95%; border:groove;margin:20px auto auto 300px; background-color:#d0d0d0" id="itemView">
         <iframe src="README.html" style="border:none;width:100%;height:100%;" name="lessons">
 
         </iframe>
-    </div>
-    <div style="display:none">
-        <script type="text/javascript" src="http://tajs.qq.com/stats?sId=23413950" charset="UTF-8"></script>
     </div>
 </body>
 </html>

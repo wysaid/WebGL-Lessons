@@ -1,0 +1,196 @@
+<html>
+<head>
+<title>Elasticity Mesh</title>
+<meta charset="utf-8"/>
+<style>
+</style>
+
+<script type="x-shader/x-vertex" id="vshDeform">
+attribute vec2 vPosition;
+attribute vec2 vTexture;
+varying vec2 textureCoordinate;
+void main()
+{
+	//An opportunism code. Do not use it unless you know what it means.
+	gl_Position = vec4(vec2(vPosition.x * 2.0 - 1.0, 1.0 - vPosition.y * 2.0), 0.0, 1.0);
+	textureCoordinate = vTexture;
+}
+</script>
+
+<script type="x-shader/x-fragment" id="fshDeform">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+	gl_FragColor = texture2D(inputImageTexture, textureCoordinate);
+}
+</script>
+
+<script type="x-shader/x-fragment" id="fshMesh">
+precision mediump float;
+varying vec2 textureCoordinate;
+uniform sampler2D inputImageTexture;
+void main()
+{
+	gl_FragColor.rgb = 1.0 - texture2D(inputImageTexture, textureCoordinate).rgb;
+	gl_FragColor.a = 1.0;
+}
+</script>
+
+<script type="text/javascript" src="demo_net_webgl.js" charset="utf-8"></script>
+<script type="text/javascript" src="webgl_lesson7.js" charset="utf-8"></script>
+</head>
+<body onresize="bodyResize()" onload="globalInitialize();bodyResize();">
+<h2>如果您的浏览器无法运行WebGL，还有HTML5简单版： <a href="http://webgl-lesson.wysaid.org/Lesson7/demo_net_html5.html" target="_blank">http://webgl-lesson.wysaid.org/Lesson7/demo_net_html5.html</a></h2>
+<div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
+<canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
+<input style="width:20%;height:30px;margin: 0 3%;" type="button" value="减小网格强度(Dec)" onclick="netIntensityDec()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="增大网格强度(Inc)" onclick = "netIntensityInc()"><input style="width:20%;height:30px;margin: 0 3%;" type="button" value="显示/隐藏网格(Hide/Show)" onclick = "bShowMesh = !bShowMesh;"></div>
+
+<div style="border:groove;background-color:#ddd;width:750px;margin:20px;"><textarea id="logBox" style="border:groove;margin:auto;width:100%;height:200px;left:1px">WebGL is initializing...
+</textarea><br>
+<input type="button" value = "Clear Log" title="清除日志" onclick="clearLogbox()"><input type="button" value = "Maximize Logbox" title="放大日志窗口" onclick="maximizeLogbox()"><input type="button" value = "Restore Logbox" title="恢复日志窗口" onclick="restoreLogbox()">
+</div>
+
+<script>
+
+var isMouseDown = false;
+var lastX, lastY;
+
+function netIntensityInc()
+{
+	g_mesh.intensityInc(0.005);
+	appendLog("当前网格强度:" + g_mesh.intensity);
+}
+
+function netIntensityDec()
+{
+	g_mesh.intensityDec(0.005);
+	appendLog("当前网格强度:" + g_mesh.intensity);
+}
+
+function mouseUp(evt)
+{
+	isMouseDown = false;
+	g_mesh.releasePoint();
+}
+
+function mouseDown(evt)
+{
+	isMouseDown = true;	
+	lastX = evt.offsetX == null ? evt.layerX : evt.offsetX;
+	lastY = evt.offsetY == null ? evt.layerY : evt.offsetY;
+	g_mesh.catchPoint(lastX / cvsWidth, lastY / cvsHeight);
+}
+
+function mouseMove(evt)
+{
+	if(!isMouseDown)
+		return ;
+	lastX = evt.offsetX == null ? evt.layerX : evt.offsetX;
+	lastY = evt.offsetY == null ? evt.layerY : evt.offsetY;
+}
+
+function drawMesh(ctx, meshObj)
+{
+	var mesh = meshObj.mesh[meshObj.layer];
+	var meshWidth = meshObj.width;
+	var meshHeight = meshObj.height;
+	for(var i = 0; i < meshHeight; ++i)
+	{
+		var k = i * meshWidth;
+		for(var j = 1; j < meshWidth; ++j)
+		{
+			var h = k + j;
+			ctx.moveTo(mesh[h - 1].x * cvsWidth, mesh[h - 1].y * cvsHeight);
+			ctx.lineTo(mesh[h].x * cvsWidth, mesh[h].y * cvsHeight);
+		}
+	}
+
+	for(var i = 0; i < meshWidth; ++i)
+	{
+		for(var j = 1; j < meshHeight; ++j)
+		{
+			var h2 = j * meshWidth + i;
+			var h1 = (j - 1) * meshWidth + i;
+			ctx.moveTo(mesh[h1].x * cvsWidth, mesh[h1].y * cvsHeight);
+			ctx.lineTo(mesh[h2].x * cvsWidth, mesh[h2].y * cvsHeight);
+		}
+	}
+
+}
+
+function drawCanvas()
+{
+	if(isMouseDown)
+	{
+		g_mesh.catchPoint(lastX / cvsWidth, lastY / cvsHeight);
+	}
+
+	drawScene();
+
+	g_mesh.update();
+}
+
+function bodyResize()
+{
+	var divObj = document.getElementById("canvas_father");
+	var cvsObj = document.getElementById("webgl-lesson7");
+	cvsObj.width = divObj.clientWidth;
+	cvsObj.height = divObj.clientHeight;
+	cvsWidth = cvsObj.width;
+	cvsHeight = cvsObj.height;
+	webgl.viewport(0, 0, cvsObj.width, cvsObj.height);
+	drawCanvas();
+
+}
+
+setInterval("drawCanvas()", 30);
+</script>
+<script>
+function imageOnload() {
+	webglInit();
+	if(webgl == null)
+	{
+		appendLog("See more: http://get.webgl.org/");
+		return;
+	}
+	appendLog("WebGL is supported! That's cool!\nHere are some infomation for your device:");
+	appendLog("The max renderbuffer size your browser support: " + 	webgl.getParameter(webgl.MAX_RENDERBUFFER_SIZE));
+	appendLog("The max texture image units your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_IMAGE_UNITS));
+	appendLog("The max texture size your browser support: " + webgl.getParameter(webgl.MAX_TEXTURE_SIZE));
+	appendLog("The max cube map texture size your browser support: " + webgl.getParameter(webgl.MAX_CUBE_MAP_TEXTURE_SIZE));
+	appendLog("The max viewport dims your browser support: " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[0] + " x " + webgl.getParameter(webgl.MAX_VIEWPORT_DIMS)[1]);
+}
+</script>
+<img src="1.jpg" id="meshTexture" style="display:none;" onload="imageOnload()">
+
+</body>
+<div style="display:none;" id="trackingCodes">
+<script type="text/javascript">
+var codeArea = document.getElementById("trackingCodes");
+var tagTencent = document.createElement("script");
+tagTencent.setAttribute("type", "text/javascript");
+tagTencent.src = "http://tajs.qq.com/stats?sId=23413950";
+tagTencent.charset = "UTF-8";
+codeArea.appendChild(tagTencent);
+</script>
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41296769-1', 'wysaid.org');
+  ga('send', 'pageview');
+</script>
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fb1b964c80dff2a1af1bb8b1ee3e9a7d1' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+</div>
+
+
+</html>

@@ -1,12 +1,221 @@
-﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title>Lesson 2</title>
+<meta charset="utf-8" />
+<title>Lesson 2</title>
+<style>
+.noborder{border:none;background-color:#999;width:300px;}
+.divWithCanvas{background-color:#fff;width:100%;height:240px;}
+</style>
 </head>
-<body>
-    <h1>WebGL simple lesson 2 (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<body style="font-family:微软雅黑;">
+<h1>第二话，动态加载shader (<a href="http://blog.wysaid.org/" target="_blank">blog.wysaid.org</a>)</h1>
+<p>上一张封装了基本的WebGL功能，包括初始化、创建着色器对象、创建&编译着色器程序然后应用着色器渲染的简单范例。这里强调一下本教程定位：在观看本教程时，作者会假设你对于OpenGL Shader Language有一定理解，所以不会去解释简单的shader代码的。如果您对GLSL一无所知，建议你先去了解。</p>
+<p>首先，回顾一下上期内容。在lesson 1，我们集成了WebGL的一些基本功能，然后用它制作了一个小demo。 由于讲得比较仓促，而且后期有些修改校正，完整代码请点击下面的按钮:</p>
 
+<div>
+<input type="button" value = "get code" title="查看代码" onclick="window.open('http://webgl-lesson.wysaid.org/Lesson2/demo_lesson1.txt', '_blank', 'toolbar=no,scrollbars=yes, resizable=yes, location=no, status=no')">
+<input type="button" value = "run code" title="查看程序" onclick="window.open('http://webgl-lesson.wysaid.org/Lesson2/demo_lesson1.html', '_blank', 'toolbar=no, width=600, height=500, location=no')">
+</div>
+
+<h3>那么，开始第二话吧！</h3>
+<h5>第一小节</h5>
+<p>上次我们封装出一个叫做"renderWebGL(verticesArray, vertexSize, VertexLength, vsh, fsh, vertexIndex)"的函数，参数有六个，<br><b>第一个为所需绘制的图形的顶点数组。<br>第二个参数分别为每个顶点的数据大小，如果为float，那么就是1，如果是vec2，那么就是2。（不要问我传整数怎么办，我拒绝回答无聊的问题@_@）。<br>第三个为顶点个数。<br>第四个第五个分别是顶点着色器代码与片元着色器代码。<br>第六个是顶点着色器里面待使用的顶点的变量名。</b></p>
+<p>然后最后实现了三个如renderTriangle()这样的函数实现一步调用并绘制出三角形/矩形/圆</p>
+<p>但是，显然每次写这样的函数都是很恶心的，为什么就不能直接把shader写到一起，而要使用javascript代码来拼凑呢？下面介绍两种常见加载shader的方法:</p>
+<p><font color="blue"><b>1. html标签方式。</b></font>这种方式适用于直接嵌入shader代码到网页中，优点是写起来方便</p>
+<div style="border:groove">用法
+<p>Vertex Shader通常写在一个类型为"x-shader/x-vertex"的script标签内，像这样:</p>
+<pre>&lt;script id="Your Vertex Shader ID" type="x-shader/x-vertex"&gt;<b>Vertex Shader Code</b>&lt;/script&gt;</pre>
+<p>Fragment Shader通常写在一个类型为"x-shader/x-fragment"的script标签内，像这样:</p>
+<pre>&lt;script id="Your Fragment Shader ID" type="x-shader/x-fragment"&gt;<b>Fragment Shader Code</b>&lt;/script&gt;</pre>
+<p>此外，我们还需要一个Javascript函数来获取这些标签内容，记住，把有用的模块划分出来是非常有助于后续的学习的哦</p>
+<pre>
+//虽然看起来直接获取innerHTML就可以了，但毕竟我们写的不是HTML。
+//如果你觉得没必要这么麻烦，那么你完全可以改为直接返回innerHTML
+function getScriptTextByID(scriptID){
+	var shaderScript = document.getElementById(scriptID);
+    if (shaderScript == null) return "";
+
+    if (shaderScript.textContent != null && shaderScript.textContent != "") {
+        return shaderScript.textContent;
+    }
+    if (shaderScript.text != null && shaderScript.text != "") {
+        return shaderScript.text;
+    }
+    var sourceCode = "";
+    var child = shaderScript.firstChild;
+    while (child) {
+        if (child.nodeType == child.TEXT_NODE) sourceCode += child.textContent;
+        child = child.nextSibling;
+    }
+    return sourceCode;
+}
+</pre>
+
+</div>
+<p>但是，你应该知道，其实对于两种shader来说，这个script的type是无关紧要的，因为我们用到的只是它的内容。</p>
+<p>所以，如果你嫌script标签写起来麻烦，你也可以写到一个div标签或者其他自定义标签里面，只要设定它的style="display:none"，不让它显示出来，然后我们通过它的id获取它里面的文本就行了。当然，我并不推荐这样做，养成良好的习惯是我们学习过程中应有的态度。</p>
+
+<p><font color="green"><b>2. js动态加载方式。</b></font>这种方式适用于shader较多的情况，优点是可以把shader写到单独的文本文件里面，在需要的时候才加载。</p>
+<div style="border:groove">方法:
+<pre>
+function requestURLPlainText(url) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", url, false);
+    xmlHttp.send();
+    return xmlHttp.responseText;
+}
+</pre>
+
+<p>为了获取shader文本，我们封装出requestURLPlainText函数，这个函数接收的参数为shader文件的url，返回shader文件的内容。</p>
+<p>简单描述一下吧：首先要知道Javascript里面的XMLHttpRequest对象。为了不引入不必要的麻烦，我不会引用任何第三方的库，如果你会jQuery什么的话，就用你自己的方法吧。XMLHttpRequest为我们提供了动态网页请求的功能。</p>
+</div>
+
+<p>这里不得不先提一下的是<font color="red">使用这种方式的话，就不能在本地直接用浏览器打开html文件运行WebGL程序了(简单来讲，你的浏览器地址栏里面出现类似于file:///这样的话，是运行不出结果的)， 一般情况下，你必须把你的程序置身于web环境下，通过IP或者域名访问(例如你访问本教程这样)。</font>而本教程将介绍这两种方法。所以如果后面的demo如果使用了这种方式编写，请在Web环境下打开该demo。<br>(Tips: 没有在本机配置apache之类的读者如果安装有vs2010以上的IDE，可以通过vs打开demo，然后右键选择从浏览器打开，vs会根据demo是否需要web环境自动创建IIS连接。)</p>
+<h5>第二小节</h5>
+<p>上一小结介绍了一些相关知识，那么我们来开始应用吧。</p>
+<p><b>首先是第一种方式</b>，在上面给出的demo code的最前面加上如下代码(也就是我们的shader代码)：</p>
+<div style="border:groove">
+<pre>
+&lt;script id="vsh_lesson2" type="x-shader/x-vertex"&gt;
+precision mediump float;
+attribute vec4 position;
+varying vec2 textureCoordinate;
+void main()
+{
+	gl_Position = position;
+	textureCoordinate = position.xy + 0.5;
+}
+&lt;/script&gt;
+
+&lt;script id="fsh_lesson2" type="x-shader/x-fragment"&gt;
+precision mediump float;
+varying vec2 textureCoordinate;
+void main()
+{
+	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);
+}
+&lt;/script&gt;
+
+</pre></div>
+<p>然后，修改renderTriangle函数，如下</p>
+<pre>
+//这下是不是清爽多了？而且shader代码就是纯粹的shader代码，没有夹杂任何javascript
+function renderTriangle()
+{
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = getScriptTextByID("vsh_lesson2");
+	var fsh = getScriptTextByID("fsh_lesson2");	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+</pre>
+<p><b>然后是第二种方式</b>，我们需要把前面提到的Vertex Shader代码和Fragment Shader代码保存下来。在本小节中，我们把Vertex Shader保存为vsh_lesson2.js, 把Fragment Shader保存为fsh_lesson2.js，然后把它们放在demo相同的目录下。</p>
+<p>然后通过如下代码方式访问：</p>
+<pre>
+//这下是不是跟上面的方法差不多？只不过封装形式不一样罢了。
+function renderTriangle(){
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = requestURLPlainText("vsh_lesson2.txt");
+	var fsh = requestURLPlainText("fsh_lesson2.txt");	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+</pre>
+
+<p>嗯，本话要讲的差不多就这些，下面让我们运行一下本小节成果吧！</p>
+<style>
+.noborder{border:groove;background-color:#999;width:300px;}
+.divWithCanvas{background-color:#fff;width:100%;height:240px;}
+</style>
+
+<div class="noborder">
+<script type="text/javascript">
+function renderTriangle1(){
+	var vertices = 
+	[
+		0.0, 0.5,
+		-0.5, -0.5,
+		0.5, -0.5,
+	];
+	var vsh = getScriptTextByID("vsh_lesson2");
+	var fsh = getScriptTextByID("fsh_lesson2");	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+
+function renderTriangle2(){
+	var vertices = 
+	[
+		0.5, 0.5,
+		-0.5, 0.5,
+		0, -0.5,
+	];
+	var vsh = requestURLPlainText("vsh_lesson2.txt");
+	var fsh = requestURLPlainText("fsh_lesson2.txt");	
+	renderWebGL(vertices, 2, 3, vsh, fsh, "position");
+}
+
+function clearCanvas(){
+	var vertices = 
+	[
+		1.0, 1.0,
+		1.0, -1.0,
+		-1.0, 1.0,
+		-1.0, -1.0
+	];
+	var vsh = 
+		"precision mediump float;" + 
+		"attribute vec4 position;" +
+		"void main()" +
+		"{" +
+		"	gl_Position = position;" +
+		"}";
+	var fsh = 
+		"precision mediump float;" +
+		"void main()" +
+		"{" +
+		"	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);" +
+		"}";
+	
+	renderWebGL(vertices, 2, 4, vsh, fsh, "position");
+}
+
+</script><p>
+<div class="divWithCanvas" id="containerView"><canvas id="webglView" style="width:100%;height:100%"></canvas></div><br>
+<input type="button" value = "run method1" title="绘制三角形" onclick="renderTriangle1()">
+<input type="button" value = "run method2" title="绘制三角形" onclick="renderTriangle2()">
+<input type="button" value = "clear" title="清屏" onclick="clearCanvas()">
+</p></div>
+<p>为了让读者看出两者都运行成功了，我特地把第二个三角形反了个方向。lesson2只实现了三角形，<b>如果你是初学者，希望你能按照本章封装的方法，自己把矩形跟圆形都改成这种方式实现。</b>本期做的是功能性讲解，所以demo的变化在内而不在外。</p>
+<p>好的，第二期教程到此为止，请关注lesson 3。系列教程地址:webgl-lesson.wysaid.org</p>
+<script type="text/javascript" src="functions_lesson_2.js">
+</script>
+<script id="vsh_lesson2" type="x-shader/x-vertex">
+precision mediump float;
+attribute vec4 position;
+varying vec2 textureCoordinate;
+void main()
+{
+	gl_Position = position;
+	textureCoordinate = position.xy + 0.5;
+}
+</script>
+
+<script id="fsh_lesson2" type="x-shader/x-fragment">
+precision mediump float;
+varying vec2 textureCoordinate;
+void main()
+{
+	gl_FragColor = vec4(textureCoordinate, 0.0, 1.0);
+}
+</script>
 </body>
 </html>
