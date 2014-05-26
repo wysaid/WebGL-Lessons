@@ -112,7 +112,7 @@ webgl.bindBuffer函数的第一个参数支持且仅支持这两个参数。 桌
 我来翻译一下， 这段话的意思大致为， STREAM_DRAW的应用场景为几乎每一次 webgl.bindBuffer使用后都需要使用 webgl.bufferData 更新一遍数据的情况，就比如本章demo中<b>网格顶点缓冲区</b>数据的情况。
 </p>
 
-<p>前面说了，如果不关心这些，可以随便写一个，bufferUsage参数只是对于OpenGL的一种暗示，并不一定非得按照描述的那样吻合才行。你填写任何一个都能正确运行，只是性能上可能存在一定差异。 对于，介于一些强迫症患者一定非得找到属于自己的style，我的建议时，不要纠结描述，直接把三种方式全部试一遍，哪种最快，帧率最高就用哪个吧，其他的都是浮云。</p>
+<p>前面说了，如果不关心这些，可以随便写一个，bufferUsage参数只是对于OpenGL的一种暗示，并不一定非得按照描述的那样吻合才行。你填写任何一个都能正确运行，只是性能上可能存在一定差异。 对于，介于一些强迫症患者一定非得找到属于自己的style，我的建议是，不要纠结描述，直接把三种方式全部试一遍，哪种最快，帧率最高就用哪个吧，其他的都是浮云。</p>
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="drawWithWebGL=true;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
