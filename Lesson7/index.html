@@ -82,7 +82,7 @@ webgl.vertexAttribPointer(v4PositionIndex, vSize, webgl.FLOAT, false, 0, 0);
 前面一直没有解释过为什么要这样用，本章将对此作出一些解释。并以此为主要功能制作一个小demo.
 </p>
 
-<h2>GL_ARRAY_BUFFER和GL_ELEMENT_ARRAY_BUFFER</h2>
+<h2>GL_ARRAY_BUFFER 和 GL_ELEMENT_ARRAY_BUFFER</h2>
 
 <p><b><font color="blue">假设本章讲到的WebGL的Context对象就叫webgl</font></b>，那么webgl.ARRAY_BUFFER和webgl.ELEMENT_ARRAY_BUFFER就分别指的GL_ARRAY_BUFFER和GL_ELEMENT_ARRAY_BUFFER这两个东西了。
 webgl.bindBuffer函数的第一个参数支持且仅支持这两个参数。 桌面OpenGL中支持更多扩展但跟这里无关，不做任何解释。
@@ -113,6 +113,24 @@ webgl.bindBuffer函数的第一个参数支持且仅支持这两个参数。 桌
 </p>
 
 <p>前面说了，如果不关心这些，可以随便写一个，bufferUsage参数只是对于OpenGL的一种暗示，并不一定非得按照描述的那样吻合才行。你填写任何一个都能正确运行，只是性能上可能存在一定差异。 对于，介于一些强迫症患者一定非得找到属于自己的style，我的建议是，不要纠结描述，直接把三种方式全部试一遍，哪种最快，帧率最高就用哪个吧，其他的都是浮云。</p>
+
+<h2>buffer 对象的使用</h2>
+<p>
+对于 webgl.ARRAY_BUFFER， 前面的章节已经提到过了， 直接绑定一个顶点属性即可， 代码类似于：
+</p>
+<pre>
+webgl.enableVertexAttribArray(anyVertexAttributeLocation);
+webgl.vertexAttribPointer(anyVertexAttributeLocation, attributeSize, webgl.FLOAT, false, 0, 0);
+</pre>
+<p>anyVertexAttributeIndex 为待使用的 Vertex Shader里面的某个attribute变量的location，<br>
+attributeSize 顾名思义为这个attribute含有几个分量，如果为float，则是1，如果为vec2则是2，依此类推。
+</p>
+<p>
+对于 webgl.ELEMENT_ARRAY_BUFFER， 前面的章节不曾使用过，这里特别解释一下：
+
+</p>
+
+
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:860px;height:700px;"><div style="margin:10px 0;position:relative;width:100%;height:650px;background-color: #100;" id="canvas_father" onmousedown="drawWithWebGL=true;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
 <canvas id="webgl-lesson7" style="width:100%;height:100%;position:relative;"></canvas></div>
