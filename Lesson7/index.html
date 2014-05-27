@@ -126,10 +126,98 @@ webgl.vertexAttribPointer(anyVertexAttributeLocation, attributeSize, webgl.FLOAT
 attributeSize 顾名思义为这个attribute含有几个分量，如果为float，则是1，如果为vec2则是2，依此类推。
 </p>
 <p>
-对于 webgl.ELEMENT_ARRAY_BUFFER， 前面的章节不曾使用过，这里特别解释一下：
-(未完待续...有点晚了，明天再写)
+对于 webgl.ELEMENT_ARRAY_BUFFER， 前面的章节不曾使用过，这里特别解释一下：<br>
+ELEMENT_ARRAY_BUFFER 本身并不是可以使用的顶点数据， 它存储的是一系列的顶点索引值，所以它的值必须为整数，且为无符号整数。
+<br> 用索引和直接使用buffer绘制的区别如下：
+</p>
+<p>首先，我们要明白， shader里面 attribute属性对应的数据为每个顶点一个的，比如你定义了 attribute vec4 color; 和 attribute vec4 vertex; 那么在传递 color和vertex两个attribute的data时，大小必须一样，且与最终绘制时使用到的顶点个数相同。
+</p>
+<p>但是如果我们绘制的图形顶点不多，但是图形比较复杂，每个顶点要用到多次怎么办？ <br>
+一般来说有两种解决办法，其一就是，把要多次用到的顶点在合适的位置多写几次，相应的，其他的attribute也对应增加。 若是顶点经常更新， 几何图形经常变动做起来就特别蛋疼。
+<br> 其二就是我们可爱的 ELEMENT_ARRAY_BUFFER 了， 我们只需要记录绘制时的顶点索引顺序即可完成绘制，而顶点数据不需要任何重复。
+</p>
+<p>以本章的demo为例，我们的网格是按三角形的方式绘制的，在网格中间，我们可以看到每个定点周围有六条线， 也就是说这个顶点至少被用到六次，如果不使用 ELEMENT_ARRAY_BUFFER ，我们竟然要把每个顶点至少写六次！ 如果shader里面还有其他的 attribute，它们也莫名其妙地跟着增加，是不是很蛋疼呢？ <br>
+这还不算完， 顶点是要更新的，也就是说，每个顶点数据的更新，也需要修改六个地方……蛋疼哭了吗，骚年？不要怀疑了， GL_ELEMENT_ARRAY_BUFFER 是解救你的神器。</p>
+
+<h3>到这里，对于这两个buffer的解释差不多够了。那么如何绘制呢？</h3>
+
+<p>对于本章的demo， 需要三个VBO， 两个 webgl.ARRAY_BUFFER和一个 webgl.ELEMENT_ARRAY_BUFFER
+</p>
+<p>这三个VBO分别表示网格顶点缓冲区， 纹理顶点缓冲区 以及一个顶点绘制的索引缓冲区。
+</p>
+<p>解释一下用途吧，前面说过了，纹理顶点缓冲区是不需要更新的，索引缓冲区同样不需要更新。 这两个缓冲区描述了整个网格的构成以及纹理绘制方式（纹理填满整个网格）</p>
+<p>在OpenGL中，如果不考虑越界处理的话，纹理坐标的范围应该是[0, 1]， 而本网格中的纹理应该是刚好填充满整个网格，所以纹理定点缓冲区里面的所有数据范围都应该介于[0，1], <br>
+而本demo并没有引入深度的概念（可以看到存在先绘制部分被遮挡的情况），并且整张纹理都在xOy平面内，所以顶点只需要x和y值就够了。那么刚好，x和y的范围也刚好都在[0, 1]之间，并且均匀变化。
+</p>
+<p>这里你可能会奇怪，因为本章的demo并没有单独创建一个纹理顶点的数据，而是直接将未变化时的网格顶点数据作为纹理顶点数据传递进去了。这里解释一下：</p>
+<p>本章demo中的顶点数据就是按纹理顶点数据方式创建的，范围就是[0, 1]，而shader内部 gl_Position 默认的全屏取值为 [-1, 1]， 为了绘满全屏， demo在vertex shader里面做了一次坐标映射，代码大致为：
+</p>
+<pre>
+attribute vec2 vPosition;
+attribute vec2 vTexture;
+varying vec2 textureCoordinate;
+void main()
+{
+	//在这里进行一次坐标映射，将纹理坐标转换为顶点坐标。
+	gl_Position = vec4(vec2(vPosition.x * 2.0 - 1.0, 1.0 - vPosition.y * 2.0), 0.0, 1.0);
+	textureCoordinate = vTexture;
+}
+</pre>
+<p>算是偷了个懒吧，以后如果你遇到了也可以这样偷懒。</p>
+
+<p>而对于整个网格的绘制，则主要在于顶点索引的设定了，设定代码大致如下：
 </p>
 
+<pre>
+    webgl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, meshIndexVBO);
+
+    meshIndexSize = (g_meshSize[0] - 1) * (g_meshSize[1] - 1) * 2 * 3;
+    var indexBufferData = new Array(meshIndexSize);
+
+    var index = 0;
+
+    for(var i = 0; i < g_meshSize[1] - 1; ++i)
+    {
+    	var pos1 = i * g_meshSize[0];
+    	var pos2 = (i + 1) * g_meshSize[0];
+    	if(i % 2)
+    	{
+    		for(var j = 0; j < g_meshSize[0] - 1; ++j)
+    		{
+    			var k = index * 3;
+    			indexBufferData[k] = pos1 + j;
+    			indexBufferData[k + 1] = pos1 + j + 1;
+    			indexBufferData[k + 2] = pos2 + j;
+    			indexBufferData[k + 3] = pos2 + j;
+    			indexBufferData[k + 4] = pos1 + j + 1;
+    			indexBufferData[k + 5] = pos2 + j + 1;
+    			index += 2;
+    		}
+    	}
+    	else
+    	{
+    		for(var j = g_meshSize[0] - 2; j >= 0; --j)
+    		{
+    			var k = index * 3;
+    			indexBufferData[k] = pos1 + j + 1;
+    			indexBufferData[k + 1] = pos2 + j + 1;
+    			indexBufferData[k + 2] = pos2 + j;
+    			indexBufferData[k + 3] = pos1 + j;
+    			indexBufferData[k + 4] = pos1 + j + 1;
+    			indexBufferData[k + 5] = pos2 + j;
+    			index += 2;
+    		}
+    	}
+    }
+    webgl.bufferData(webgl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexBufferData), webgl.STATIC_DRAW);
+</pre>
+
+<p>因为想保留绘制一个线型的网格的功能，所以不得不采用S形路线来绘制整个网格。 这里的顶点数据是一维数组， 每两个为一对，分别表示x和y， 一次填充一个三角形，最终填满整个网格。
+<br>小提示： 如果你注意观察的话，可以发现每个小三角形的顶点顺序都是逆时针方向的哦， 这样可以区分网格的正反面，当然，本次demo并没有体现出区别， 以后如果有机会讲到光照和面剔除(CullFace)的话就会知道这样做的意义了。
+</p>
+
+<p>本章关于WebGL的东西差不多就这么多了，剩下的如果还有什么疑问请自己clone下本章的demo</p>
+<p><b>本章的demo如下：(请用鼠标点击与上方html5版本是同步的，但是为了防止某些单核电脑卡顿，这两个demo不会同时刷新)</b></p>
 
 
 <div style="position:relative;border:groove;background-color: #ddd;margin:20px;width:820px;height:670px;"><div style="margin:10px 0;position:relative;width:100%;height:620px;background-color: #100;" id="canvas_father" onmousedown="drawWithWebGL=true;mouseDown(event)" onmouseup="mouseUp(event)" onmousemove="mouseMove(event)">
