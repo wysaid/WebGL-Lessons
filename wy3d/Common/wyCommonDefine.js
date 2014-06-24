@@ -1,47 +1,47 @@
 /*
- * htCommonDefine.js
+ * wyCommonDefine.js
  *
  *  Created on: 2014-6-23
  *      Author: Wang Yang
  */
 
-var HT_SDK_VERSION = "0.0.1"
+var WY_SDK_VERSION = "0.0.1"
 
-var HTTextureBlendMode = 
+var WYTextureBlendMode = 
 {
-	HT_BLEND_MIX : 0,			// 0
-	HT_BLEND_OVERLAY : 1,		// 1
-	HT_BLEND_HARDLIGHT : 2,		// 2
-	HT_BLEND_SOFTLIGHT : 3,		// 3
-	HT_BLEND_SCREEN : 4,		// 4
-	HT_BLEND_LINEARLIGHT : 5,	// 5
-	HT_BLEND_VIVIDLIGHT : 6,	// 6
-	HT_BLEND_MULTIPLY : 7,		// 7
-	HT_BLEND_EXCLUDE : 8,		// 8
-	HT_BLEND_COLORBURN : 9,		// 9
-	HT_BLEND_DARKEN : 10,		// 10
-	HT_BLEND_LIGHTEN : 11,		// 11
-	HT_BLEND_COLORDODGE : 12,	// 12
-	HT_BLEND_COLORDODGEADOBE : 13,// 13
-	HT_BLEND_LINEARDODGE : 14,	// 14
-	HT_BLEND_LINEARBURN : 15,	// 15
-	HT_BLEND_PINLIGHT : 16,		// 16
-	HT_BLEND_HARDMIX : 17,		// 17
-	HT_BLEND_DIFFERENCE : 18,	// 18
-	HT_BLEND_ADD : 19,			// 19
-	HT_BLEND_COLOR : 20,		// 20
+	WY_BLEND_MIX : 0,			// 0
+	WY_BLEND_OVERLAY : 1,		// 1
+	WY_BLEND_HARDLIGHT : 2,		// 2
+	WY_BLEND_SOFTLIGHT : 3,		// 3
+	WY_BLEND_SCREEN : 4,		// 4
+	WY_BLEND_LINEARLIGHT : 5,	// 5
+	WY_BLEND_VIVIDLIGHT : 6,	// 6
+	WY_BLEND_MULTIPLY : 7,		// 7
+	WY_BLEND_EXCLUDE : 8,		// 8
+	WY_BLEND_COLORBURN : 9,		// 9
+	WY_BLEND_DARKEN : 10,		// 10
+	WY_BLEND_LIGHTEN : 11,		// 11
+	WY_BLEND_COLORDODGE : 12,	// 12
+	WY_BLEND_COLORDODGEADOBE : 13,// 13
+	WY_BLEND_LINEARDODGE : 14,	// 14
+	WY_BLEND_LINEARBURN : 15,	// 15
+	WY_BLEND_PINLIGHT : 16,		// 16
+	WY_BLEND_HARDMIX : 17,		// 17
+	WY_BLEND_DIFFERENCE : 18,	// 18
+	WY_BLEND_ADD : 19,			// 19
+	WY_BLEND_COLOR : 20,		// 20
 
 	/////////////    Special blend mode below     //////////////
 
-	HT_BlEND_ADD_REVERSE : 21,	// 21
-	HT_BLEND_COLOR_BW : 22,		// 22
+	WY_BlEND_ADD_REVERSE : 21,	// 21
+	WY_BLEND_COLOR_BW : 22,		// 22
 
 	/////////////    Special blend mode above     //////////////
 
-	HT_BLEND_TYPE_MAX_NUM : 23 //Its value defines the max num of blend.
+	WY_BLEND_TYPE_MAX_NUM : 23 //Its value defines the max num of blend.
 };
 
-var HTTextureBlendModeName =
+var WYTextureBlendModeName =
 [
 "MIX",			// 0
 "OVERLAY",		// 1
@@ -71,21 +71,21 @@ var HTTextureBlendModeName =
 "COLOR_BW",		// 22
 ];
 
-function htGetBlendModeName(blendMode)
+function wyGetBlendModeName(blendMode)
 {
-	if(!(blendMode >= HTTextureBlendMode.HT_BLEND_MIX && blendMode < HTTextureBlendMode.HT_BLEND_TYPE_MAX_NUM))
+	if(!(blendMode >= WYTextureBlendMode.WY_BLEND_MIX && blendMode < WYTextureBlendMode.WY_BLEND_TYPE_MAX_NUM))
 	{
 		return "Invalid Blend Mode";
 	}
 	return HTTextureBlendModeName[blendMode];
 }
 
-function htPrintGLString(tag, webglEnum)
+function wyPrintGLString(tag, webglEnum)
 {
-	htCore.LOG_INFO(tag, " = ", webgl.getParameter(webglEnum));
+	wyCore.LOG_INFO(tag, " = ", webgl.getParameter(webglEnum));
 }
 
-function htCheckGLError(tag)
+function wyCheckGLError(tag)
 {
 	for (var error = webgl.getError(); error; error = webgl.getError())
 	{		
@@ -99,31 +99,31 @@ function htCheckGLError(tag)
 		case webgl.OUT_OF_MEMORY: msg = "out of memory"; break;
 		default: msg = "unknown error";
 		}
-		htCore.LOG_ERROR(tag, msg, error);
+		wyCore.LOG_ERROR(tag, msg, error);
 	}
 }
 
-function HT_FLOATCOMP0(value)
+function WY_FLOATCOMP0(value)
 {
 	return value < 0.001 && value > -0.001;
 }
 
-function HT_MAX(a, b)
+function WY_MAX(a, b)
 {
 	return a > b ? a : b;
 }
 
-function HT_MIN(a, b)
+function WY_MIN(a, b)
 {
 	return a < b ? a : b;
 }
 
-function HT_MID(n, min, max)
+function WY_MID(n, min, max)
 {
-	return HT_MIN(HT_MAX(n, min), max);
+	return WY_MIN(WY_MAX(n, min), max);
 }
 
-function HTSize(width, height)
+function WYSize(width, height)
 {
 	this.width = parseFloat(width);
 	this.height = parseFloat(height);

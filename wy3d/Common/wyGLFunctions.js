@@ -1,11 +1,11 @@
 /*
- * htGLFunctions.js
+ * wyGLFunctions.js
  *
  *  Created on: 2014-6-23
  *      Author: Wang Yang
  */
 
- function HTTexture()
+ function WYTexture()
  {
  	this.texture = null;
 
@@ -21,7 +21,7 @@
  		webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.LINEAR);
  		webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
  		webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
- 		htCheckGLError("HTTexture::initWithImageObj");
+ 		wyCheckGLError("WYTexture::initWithImageObj");
  	};
 
  	this.initWithImageTag = function(tagID)
@@ -66,7 +66,7 @@
 
  };
 
- function HTFrameBuffer()
+ function WYFrameBuffer()
  {
  	this.framebuffer = webgl.createFramebuffer();
 
@@ -77,7 +77,7 @@
 
  		if(webgl.checkFramebufferStatus(webgl.FRAMEBUFFER) != webgl.FRAMEBUFFER_COMPLETE)
  		{
- 			htCore.LOG_ERROR("HTFrameBuffer::bindTexture2D - Frame buffer is not completed.");
+ 			wyCore.LOG_ERROR("WYFrameBuffer::bindTexture2D - Frame buffer is not completed.");
  		}
  	}
 
