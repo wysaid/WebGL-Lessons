@@ -3,6 +3,7 @@
  *
  *  Created on: 2014-6-23
  *      Author: Wang Yang
+ *        blog: http://blog.wysaid.org
  */
 
 var WY_SDK_VERSION = "0.0.1"

@@ -3,17 +3,22 @@
  *
  *  Created on: 2014-6-23
  *      Author: Wang Yang
+ *        blog: http://blog.wysaid.org
  */
 
  function WYTexture()
  {
  	this.texture = null;
+ 	this.width = 0;
+ 	this.height = 0;
 
  	this.initWithImageObj = function(imageObj)
  	{
  		if(!imageObj)
  			return;
 
+ 		this.width = imageObj.width;
+ 		this.height = imageObj.height;
  		this.texture = webgl.createTexture();
  		webgl.bindTexture(webgl.TEXTURE_2D, this.texture);
  		webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGBA, webgl.RGBA, webgl.UNSIGNED_BYTE, imageObj);

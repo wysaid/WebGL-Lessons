@@ -3,6 +3,7 @@
  *
  *  Created on: 2014-6-23
  *      Author: Wang Yang
+ *        blog: http://blog.wysaid.org
  */
 
 var wyEnableDebug = true; //如果不需要debug功能，请自己在代码最初把这个设置为false

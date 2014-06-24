@@ -1,8 +1,9 @@
 /*
-* htShaderFunctions.js
+* wyShaderFunctions.js
 *
 *  Created on: 2014-6-23
 *      Author: Wang Yang
+*        blog: http://blog.wysaid.org
 */
 
 function getTextContentByTagID(tagID)
@@ -25,7 +26,7 @@ function getTextContentByTagID(tagID)
 	return sourceCode;
 }
 
-function htRequestURLText(url) {
+function wyRequestURLText(url) {
 	htCore.LOG_INFO("Requesting plain text for definition");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url, false);
@@ -33,7 +34,7 @@ function htRequestURLText(url) {
 	return xmlHttp.responseText;
 }
 
-function HTShader()
+function WYShader()
 {
 	this.shaderType = null;
 	this.shaderObj = null;
@@ -53,7 +54,7 @@ function HTShader()
 			this.shaderObj = webgl.createShader(this.shaderType);
 		if(!this.shaderObj)
 		{
-			htCore.LOG_ERROR("HTShader : webgl.createShader failed!");
+			htCore.LOG_ERROR("WYShader : webgl.createShader failed!");
 			return false;
 		}
 		webgl.shaderSource(this.shaderObj, shaderString);
@@ -82,7 +83,7 @@ function HTShader()
 				return true;
 		}
 
-		var shaderString = htRequestURLText(url);
+		var shaderString = wyRequestURLText(url);
 		if(this.loadShaderSourceFromString(shaderString))
 		{
 			var shaderScript = document.createElement("script");
@@ -106,10 +107,10 @@ function HTShader()
 
 }
 
-function HTProgram()
+function WYProgram()
 {
-	this.vertShader = new HTShader();
-	this.fragShader = new HTShader();
+	this.vertShader = new WYShader();
+	this.fragShader = new WYShader();
 	this.programObj = webgl.createProgram();
 	if(!programObj)
 	{
@@ -128,10 +129,10 @@ function HTProgram()
 		this.fragShader.loadShaderSourceFromTag(tagID);
 	}
 
-	this.initFragmentShaderFromURL = function(url)
+	this.initFragmentShaderFromURL = function(url, tag)
 	{
 		return this.m_programObj && this.fragShader.init(webgl.FRAGMENT_SHADER) &&
-		this.fragShader.loadShaderSourceFromURL(url);
+		this.fragShader.loadShaderSourceFromURL(url, tag);
 	}
 
 	this.initVertexShaderFromString = function(shaderString)
@@ -146,10 +147,10 @@ function HTProgram()
 		this.vertShader.loadShaderSourceFromTag(tagID);
 	}
 
-	this.initVertexShaderFromURL = function(url)
+	this.initVertexShaderFromURL = function(url, tag)
 	{
 		return this.m_programObj && this.vertShader.init(webgl.VERTEX_SHADER) &&
-		this.vertShader.loadShaderSourceFromURL(url);
+		this.vertShader.loadShaderSourceFromURL(url, tag);
 	}
 
 	this.link = function()

@@ -7,9 +7,20 @@
 //为了便于区分函数名，本文件所有函数均以wy开头（轻吐槽@_@b）
 //本文件部分算法参考自: http://opengl.org/
 
+
+//定义向量与矩阵的数据类型.
+if(typeof Float32Array != 'undefined')
+	WYMatrixArrayType = Float32Array;
+else
+	WYMatrixArrayType = Array;
+
+
 function WYVec3(x, y, z)
 {
-	this.data = [x, y, z];
+	if(x && y && z)
+		this.data = new WYMatrixArrayType([x, y, z])
+	else
+		this.data = new WYMatrixArrayType(3);
 
 	this.dot = function(v3)
 	{
@@ -191,7 +202,7 @@ WYVec3.vec3Project = function(v3ToProj, projVec)
 // vector 4 没怎么用到，暂时不写太多。
 function WYVec4(x, y, z, w)
 {
-	this.data = [x, y, z, w];
+	this.data = new WYMatrixArrayType([x, y, z, w]);
 };
 
 
@@ -215,10 +226,10 @@ function WYMat4(m00, m01, m02, m03,
 
 	this.transpose = function()
 	{
-		this.data = [this.data[0],  this.data[4],  this.data[8],  this.data[12],
+		this.data = new WYMatrixArrayType([this.data[0],  this.data[4],  this.data[8],  this.data[12],
 			this.data[1],  this.data[5],  this.data[9],  this.data[13],
 			this.data[2],  this.data[6],  this.data[10],  this.data[14],
-			this.data[3],  this.data[7],  this.data[11],  this.data[15]];
+			this.data[3],  this.data[7],  this.data[11],  this.data[15]]);
 	};
 
 	this.translateX = function(x)
