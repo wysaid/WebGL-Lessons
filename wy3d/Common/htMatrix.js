@@ -14,12 +14,12 @@ function WYVec3(x, y, z)
 	this.dot = function(v3)
 	{
 		return this.data[0] * v3.data[0] + this.data[1] * v3.data[1] + this.data[2] * v3.data[2];
-	}
+	};
 
 	this.dotSelf = function()
 	{
 		return this.data[0] * this.data[0] + this.data[1] * this.data[1] + this.data[2] * this.data[2];
-	}
+	};
 
 	this.add = function(v3)
 	{
@@ -27,7 +27,7 @@ function WYVec3(x, y, z)
 		this.data[1] += v3.data[1];
 		this.data[2] += v3.data[2];
 		return this;
-	}
+	};
 
 	this.sub = function(v3)
 	{
@@ -35,7 +35,7 @@ function WYVec3(x, y, z)
 		this.data[1] -= v3.data[1];
 		this.data[2] -= v3.data[2];
 		return this;
-	}
+	};
 
 	this.mul = function(v3)
 	{
@@ -43,7 +43,7 @@ function WYVec3(x, y, z)
 		this.data[1] *= v3.data[1];
 		this.data[2] *= v3.data[2];
 		return this;
-	}
+	};
 
 	this.div = function(v3)
 	{
@@ -51,7 +51,7 @@ function WYVec3(x, y, z)
 		this.data[1] /= v3.data[1];
 		this.data[2] /= v3.data[2];
 		return this;
-	}
+	};
 
 	this.normalize = function()
 	{
@@ -60,7 +60,7 @@ function WYVec3(x, y, z)
 		this.data[1] *= scale;
 		this.data[2] *= scale;
 		return this;
-	}
+	};
 
 	//////////////////////////////////////////////////
 
@@ -69,28 +69,28 @@ function WYVec3(x, y, z)
 		this.data[0] -= fValue;
 		this.data[1] -= fValue;
 		this.data[2] -= fValue;
-	}
+	};
 
 	this.addFloat = function(fValue)
 	{
 		this.data[0] += fValue;
 		this.data[1] += fValue;
 		this.data[2] += fValue;
-	}
+	};
 
 	this.mulFloat = function(fValue)
 	{
 		this.data[0] *= fValue;
         this.data[1] *= fValue;
         this.data[2] *= fValue;
-	}
+	};
 
 	this.divFloat = function(fValue)
 	{
         this.data[0] /= fValue;
         this.data[1] /= fValue;
         this.data[2] /= fValue;
-	}
+	};
 
 	//////////////////////////////////////////////////
 
@@ -101,49 +101,42 @@ function WYVec3(x, y, z)
         this.data[2] = this.data[0] * v3.data[1] - this.data[1] * v3.data[0];
         this.data[0] = x;
         this.data[1] = y;
-	}
+	};
 		
-}
+};
 
 WYVec3.makeVec3 = function(x, y, z)
 {
 	return new WYVec3(x, y, z);
-}
+};
 
 WYVec3.vec3Sub = function(v3Left, v3Right)
 {
 	return WYVec3.makeVec3(v3Left.data[0] - v3Right.data[0],
 		v3Left.data[1] - v3Right.data[1],
 		v3Left.data[2] - v3Right.data[2]);
-}
-
-WYVec3.vec3Sub = function(v3Left, v3Right)
-{
-	return WYVec3.makeVec3(v3Left.data[0] - v3Right.data[0],
-		v3Left.data[1] - v3Right.data[1],
-		v3Left.data[2] - v3Right.data[2]);
-}
+};
 
 WYVec3.vec3Add = function(v3Left, v3Right)
 {
 	return WYVec3.makeVec3(v3Left.data[0] + v3Right.data[0],
 		v3Left.data[1] + v3Right.data[1],
 		v3Left.data[2] + v3Right.data[2]);
-}
+};
 
 WYVec3.vec3Mul = function(v3Left, v3Right)
 {
 	return WYVec3.makeVec3(v3Left.data[0] * v3Right.data[0],
 		v3Left.data[1] * v3Right.data[1],
 		v3Left.data[2] * v3Right.data[2]);
-}
+};
 
 WYVec3.vec3Div = function(v3Left, v3Right)
 {
 	return WYVec3.makeVec3(v3Left.data[0] / v3Right.data[0],
 		v3Left.data[1] / v3Right.data[1],
 		v3Left.data[2] / v3Right.data[2]);
-}
+};
 
 //////////////////////////////////////////////////
 
@@ -152,28 +145,28 @@ WYVec3.vec3SubFloat = function(v3Left, fValue)
 	return WYVec3.makeVec3(v3Left.data[0] - fValue,
 		v3Left.data[1] - fValue,
 		v3Left.data[2] - fValue);
-}
+};
 
 WYVec3.vec3AddFloat = function(v3Left, fValue)
 {
 	return WYVec3.makeVec3(v3Left.data[0] + fValue,
 		v3Left.data[1] + fValue,
 		v3Left.data[2] + fValue);
-}
+};
 
 WYVec3.vec3MulFloat = function(v3Left, fValue)
 {
 	return WYVec3.makeVec3(v3Left.data[0] * fValue,
 		v3Left.data[1] * fValue,
 		v3Left.data[2] * fValue);
-}
+};
 
 WYVec3.vec3DivFloat = function(v3Left, fValue)
 {
 	return WYVec3.makeVec3(v3Left.data[0] / fValue,
 		v3Left.data[1] / fValue,
 		v3Left.data[2] / fValue);
-}
+};
 
 //////////////////////////////////////////////////
 
@@ -182,7 +175,7 @@ WYVec3.vec3Cross = function(v3Left, v3Right)
 	return WYVec3.makeVec3(v3Left.data[1] * v3Right.data[2] - v3Left.data[2] * v3Right.data[1],
 			v3Left.data[2] * v3Right.data[0] - v3Left.data[0] * v3Right.data[2],
 			v3Left.data[0] * v3Right.data[1] - v3Left.data[1] * v3Right.data[0]);
-}
+};
 
 
 
@@ -190,7 +183,7 @@ WYVec3.vec3Project = function(v3ToProj, projVec)
 {
 	var d = projVec.dot(v3ToProj) / projVec.dotSelf();
 	return WYVec3.vec3MulFloat(projVec, d);
-}
+};
 
 //////////////////////////////////////////////////////
 
@@ -199,7 +192,7 @@ WYVec3.vec3Project = function(v3ToProj, projVec)
 function WYVec4(x, y, z, w)
 {
 	this.data = [x, y, z, w];
-}
+};
 
 
 
@@ -226,28 +219,28 @@ function WYMat4(m00, m01, m02, m03,
 			this.data[1],  this.data[5],  this.data[9],  this.data[13],
 			this.data[2],  this.data[6],  this.data[10],  this.data[14],
 			this.data[3],  this.data[7],  this.data[11],  this.data[15]];
-	}
+	};
 
 	this.translateX = function(x)
 	{
 		this.data[12] += this.data[0] * x;
 		this.data[13] += this.data[1] * x;
 		this.data[14] += this.data[2] * x;
-	}
+	};
 
 	this.translateY = function(y)
 	{
 		this.data[12] += this.data[4] * y;
 		this.data[13] += this.data[5] * y;
 		this.data[14] += this.data[6] * y;
-	}
+	};
 
 	this.translateZ = function(z)
 	{
 		this.data[12] += this.data[8] * z;
 		this.data[13] += this.data[9] * z;
 		this.data[14] += this.data[10] * z;
-	}
+	};
 
 	this.scaleX = function(x)
 	{
@@ -255,7 +248,7 @@ function WYMat4(m00, m01, m02, m03,
 		data[1] *= x;
 		data[2] *= x;
 		data[3] *= x;
-	}
+	};
 
 	this.scaleY = function(y)
 	{
@@ -263,7 +256,7 @@ function WYMat4(m00, m01, m02, m03,
 		data[5] *= y;
 		data[6] *= y;
 		data[7] *= y;
-	}
+	};
 
 	this.scaleZ = function(z)
 	{
@@ -271,15 +264,15 @@ function WYMat4(m00, m01, m02, m03,
 		data[9] *= z;
 		data[10] *= z;
 		data[11] *= z;
-	}
+	};
 
 	this.scale = function(x, y, z)
 	{
 		this.scaleX(x);
 		this.scaleY(y);
 		this.scaleZ(z);
-	}
-}
+	};
+};
 
 /////////////////////////////////////////////////////////////
 
@@ -292,7 +285,7 @@ WYMat4.makeMat4 = function(m00, m01, m02, m03,
 					m10, m11, m12, m13,
 					m20, m21, m22, m23,
 					m30, m31, m32, m33);
-}
+};
 
 WYMat4.makeIdentity = function()
 {
@@ -300,7 +293,7 @@ WYMat4.makeIdentity = function()
 					0.0, 1.0, 0.0, 0.0,
 					0.0, 0.0, 1.0, 0.0,
 					0.0, 0.0, 0.0, 1.0);
-}
+};
 
 WYMat4.makeTranslation = function(x, y, z)
 {
@@ -308,7 +301,7 @@ WYMat4.makeTranslation = function(x, y, z)
 		0.0, 1.0, 0.0, 0.0,
 		0.0, 0.0, 1.0, 0.0,
 		x, y, z, 1.0);
-}
+};
 
 WYMat4.makeScale = function(x, y, z)
 {
@@ -316,7 +309,7 @@ WYMat4.makeScale = function(x, y, z)
 		0.0, y, 0.0, 0.0,
 		0.0, 0.0, z, 0.0,
 		0.0, 0.0, 0.0, 1.0);
-}
+};
 
 WYMat4.makeRotation = function(rad, x, y, z)
 {
@@ -343,7 +336,7 @@ WYMat4.makeRotation = function(rad, x, y, z)
 		0.0,
 		0.0,
 		1.0);
-}
+};
 
 WYMat4.makeXRotation = function(rad)
 {
@@ -353,7 +346,7 @@ WYMat4.makeXRotation = function(rad)
 		0.0, cosRad, sinRad, 0.0,
 		0.0, -sinRad, cosRad, 0.0,
 		0.0, 0.0, 0.0, 1.0);
-}
+};
 
 WYMat4.makeYRotation = function(rad)
 {
@@ -363,7 +356,7 @@ WYMat4.makeYRotation = function(rad)
 		0.0, 1.0, 0.0, 0.0,
 		sinRad, 0.0, cosRad, 0.0,
 		0.0, 0.0, 0.0, 1.0);
-}
+};
 
 WYMat4.makeZRotation = function(rad)
 {
@@ -373,7 +366,7 @@ WYMat4.makeZRotation = function(rad)
 		-sinRad, cosRad, 0.0, 0.0,
 		0.0, 0.0, 1.0, 0.0,
 		0.0, 0.0, 0.0, 1.0);
-}
+};
 
 WYMat4.makePerspective = function(fovyRad, aspect, nearZ, farZ)
 {
@@ -382,7 +375,7 @@ WYMat4.makePerspective = function(fovyRad, aspect, nearZ, farZ)
 		0.0, cotan, 0.0, 0.0,
 		0.0, 0.0, (farZ + nearZ) / (nearZ - farZ), -1.0,
 		0.0, 0.0, (2.0 * farZ * nearZ) / (nearZ - farZ), 0.0);
-}
+};
 
 WYMat4.makeFrustum = function(left, right, bottom, top, nearZ, farZ)
 {
@@ -393,11 +386,11 @@ WYMat4.makeFrustum = function(left, right, bottom, top, nearZ, farZ)
 	var fan = farZ + nearZ;
 	var fsn = farZ - nearZ;
 
-	return new WYMat4(0.0 * nearZ / rsl, 0.0, 0.0, 0.0,
+	return new WYMat4(2.0 * nearZ / rsl, 0.0, 0.0, 0.0,
 		0.0, 2.0 * nearZ / tsb, 0.0, 0.0,
 		ral / rsl, tab / tsb, -fan / fsn, -1.0,
 		0.0, 0.0, (-2.0 * farZ * nearZ) / fsn, 0.0);
-}
+};
 
 WYMat4.makeOrtho = function(left, right, bottom, top, nearZ, farZ)
 {
@@ -412,7 +405,7 @@ WYMat4.makeOrtho = function(left, right, bottom, top, nearZ, farZ)
 		0.0, 2.0 / tsb, 0.0, 0.0,
 		0.0, 0.0, -2.0 / fsn, 0.0,
 		-ral / rsl, -tab / tsb, -fan / fsn, 1.0);
-}
+};
 
 WYMat4.makeLookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, centerZ,	upX, upY, upZ)
 {
@@ -430,7 +423,7 @@ WYMat4.makeLookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, centerZ,	upX, u
 		-v.dot(ev),
 		-n.dot(ev),
 		1.0);
-}
+};
 
 WYMat4.mat4Mul = function(mat4Left, mat4Right)
 {
@@ -452,7 +445,7 @@ WYMat4.mat4Mul = function(mat4Left, mat4Right)
 		mat4Left.data[2] * mat4Right.data[12] + mat4Left.data[6] * mat4Right.data[13] + mat4Left.data[10] * mat4Right.data[14] + mat4Left.data[14] * mat4Right.data[15],			
 		mat4Left.data[3] * mat4Right.data[12] + mat4Left.data[7] * mat4Right.data[13] + mat4Left.data[11] * mat4Right.data[14] + mat4Left.data[15] * mat4Right.data[15]
 		);
-}
+};
 
 WYMat4.mat4MulVec4 = function(mat4, vec4)
 {
@@ -462,7 +455,7 @@ WYMat4.mat4MulVec4 = function(mat4, vec4)
 		mat4.data[2] * vec4.data[0] + mat4.data[6] * vec4.data[1] + mat4.data[10] * vec4.data[2] + mat4.data[14] * vec4.data[3],
 		mat4.data[3] * vec4.data[0] + mat4.data[7] * vec4.data[1] + mat4.data[11] * vec4.data[2] + mat4.data[15] * vec4.data[3]
 		);
-}
+};
 
 WYMat4.mat4MulVec3 = function(mat4, vec3)
 {
@@ -471,7 +464,7 @@ WYMat4.mat4MulVec3 = function(mat4, vec3)
 		mat4.data[1] * vec3.data[0] + mat4.data[5] * vec3.data[1] + mat4.data[9] * vec3.data[2],
 		mat4.data[2] * vec3.data[0] + mat4.data[6] * vec3.data[1] + mat4.data[10] * vec3.data[2]
 		);
-}
+};
 
 //通过四元数创建矩阵
 WYMat4.makeMat4WithQuaternion = function(x, y, z, w)
@@ -501,7 +494,7 @@ WYMat4.makeMat4WithQuaternion = function(x, y, z, w)
 		0.0,
 		0.0,
 		1.0);
-}
+};
 
 //obj: WYVec4; w should be 1.0
 //modelViewMat, projMat: WYMat4;
@@ -523,4 +516,4 @@ WYMat4.projectM4 = function(obj, modelViewMat, projMat, viewport, winCoord)
 	if(winCoord.data[2])
 		winCoord.data[2] = (1.0 + result.data[2]) / 2.0;
 	return true;
-}
+};

@@ -1,0 +1,44 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>simpleDemo</title>
+<script type="text/javascript" src="./Common/htMatrix.js"></script>
+<script type="text/javascript" src="./Common/htPlatform_WEB.js"></script>
+<script type="text/javascript" src="./Common/htCommonDefine.js"></script>
+<script type="text/javascript" src="./Common/htGLFunctions.js"></script>
+<script type="text/javascript" src="./Common/htShaderFunctions.js"></script>
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+htCore.createCanvas(500, 300);
+htCore.initializeWebGL();
+htCore.showBrowserInfo();
+
+webgl.clearColor(1.0, 0.0, 0.0, 1.0);
+webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+</script>
+
+<br><textarea id="txt" style="width:500px;height:150px;"></textarea>
+
+<script type="text/javascript">
+var txtarea = document.getElementById("txt");
+function addlog()
+{ 
+	for (var i = 0; i < arguments.length; i++) {  
+		txtarea.value +=arguments[i] + " ";
+	}
+	txtarea.value += "\n";
+}
+htCore.bindLogInfo(addlog);
+htCore.bindLogError(addlog);
+htCore.showBrowserInfo();
+</script>
+
+<p>本demo展示了如何使用本库创建canvas并绑定webgl。</p>
+
+</body>
+</html>
