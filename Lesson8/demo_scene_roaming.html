@@ -1,0 +1,32 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>WebGL Lesson8 场景漫游</title>
+<script type="text/javascript" src="WGE/Common/wyMatrix.js"></script>
+<script type="text/javascript" src="WGE/Common/wyPlatform_WEB.js"></script>
+<script type="text/javascript" src="WGE/Common/wyCommonDefine.js"></script>
+<script type="text/javascript" src="WGE/Common/wyGLFunctions.js"></script>
+<script type="text/javascript" src="WGE/Common/wyShaderFunctions.js"></script>
+</head>
+
+<body onresize="wyCore.resize();">
+
+<div id="sceneFather" style="width:100%;height:100%;"><canvas id="scene"></canvas></div>
+
+<script type="text/javascript">
+
+//wyCore.createCanvas(500, 300);
+wyCore.bindCanvas(document.getElementById("scene"));
+wyCore.resizeWithFather(document.getElementById("sceneFather"));
+wyCore.initializeWebGL();
+wyCore.resize();
+
+wyCore.showBrowserInfo();
+
+webgl.clearColor(1.0, 0.0, 0.0, 1.0);
+webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+webgl.finish();
+</script>
+</body>
+</html>
