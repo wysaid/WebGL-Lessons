@@ -32,7 +32,7 @@ else
 	};
 
 	wyCore.LOG_ERROR = function() {
-		window.console.log(arguments);
+//		window.console.error(arguments);
 	};
 }
 
@@ -98,7 +98,7 @@ wyCore.initializeWebGL = function()
 
 	if(!webgl)
 	{
-		wyCore.LOG_ERROR("Your browser doesnot support WebGL!");
+		wyCore.LOG_ERROR("Your browser doesnot support WebGL! Try again with chrome or firefox!!");
 	}
 	else
 	{
