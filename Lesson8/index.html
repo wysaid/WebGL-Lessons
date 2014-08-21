@@ -9,14 +9,6 @@
 <h1>第八话， 通过第六七话的内容实现类似于一般3D游戏的场景漫游，通过简单的手工代码创建场景以及简单的模型，以及对模型附加纹理</h1>
 <p>号外： <b><a href="http://webgl-lesson.wysaid.org/WGE/" target="_blank">WGE</a></b>（WGE是啥？请参见教程readme）正在编写中。写了这么些章，发现每次都用零散的代码写demo是非常不科学的事情，所以决定封装出一个lib。虽然WGE处于未完成状态，但博主我决定先行启用了，如果觉得demo变复杂了请随意吐槽。还请花一点点时间看一看WGE的基本结构。另，WGE目前代码不怎么好，未来可能有大幅调整，所以当前版本直接归属于本章demo所有，请到github主页clone下来查看。</p>
 <p>废话不多说，进入正题，一些人知道使用three.js载入模型，显示模型，却不知道模型是如何显示出来的，对此，请仔细理解本章内容。</p><br>
-<p>首先必须介绍一下WGE， 请粗略看一眼。目前WGE包含五个js文件（开发阶段，为了便于阅读代码），这五个js文件是存在部分依赖关系的，引用顺序为</p>
-<p>
-<b>wyMatrix.js</b> 包含所有向量矩阵算法<br>
-<b>wyPlatform_WEB.js</b> 由于制作WGE时考虑到可能会制作桌面或者移动版，后缀WEB。本文件包含创建绑定webgl context等内容<br>
-<b>wyCommonDefine.js</b> 包含了一些公共函数以及枚举定义<br>
-<b>wyGLFunctions.js</b> 对WebGL一些对象进一步封装，比如纹理和帧缓存对象<br>
-<b>wyShaderFunctions.js</b> 对WebGL的shader对象和program对象进一步封装
-</p>
 
 
 </body>
