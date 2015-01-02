@@ -400,6 +400,8 @@ var MyGUI = WGE.Class(WGE.GUIInterface, WGE.SceneInterface,
 			break;
 		case 32: case 64://space
 			this.dz = 2.5;
+			e.stopPropagation();
+			e.preventDefault();
 		default:
 			;
 		}
