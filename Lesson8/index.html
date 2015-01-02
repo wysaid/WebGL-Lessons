@@ -19,8 +19,8 @@
 <p>这一话跟上一话隔了数月之久， 是我偷懒啦。 好不容易到了2015， 继续一边学习一边写这个吧。 希望对你有所帮助。</p>
 <p>废话不多说，进入正题</p>
 
-<p>先上个demo瞧瞧， 在demo里面点击</p>
-
+<p>先上个demo瞧瞧， 在demo里面点击鼠标左键可以拖动视野， 当demo窗口获得焦点之后， 使用键盘的w,a,s,d可以控制“自己”游览整个区域</p>
+<p>使用鼠标滚轮还可以有远近视野效果哦。 不过页面也会随之滚动， 你可以在最下方完整的demo里面体验~</p>
 <div id = "lesson8-demo" style="border:solid;marigin:10%;width:80%;height:500px;">
 
 <script type="text/javascript" src="demo_scene_roaming.js"></script>
@@ -37,15 +37,212 @@ document.body.setAttribute("onload", "gui.initSprites();gui.start();");
 
 </script>
 </div>
-
-
 <div style="display:none">
-
 <img src="0.jpg" id="test0">
 <img src="1.jpg" id="test1">
 <img src="2.jpg" id="test2">
 <img src="3.jpg" id="test3">
 <img src="4.jpg" id="test4">
 </div>
+
+<hr>
+<h3>怎么样， 有意思吧!</h3>
+<p>如果你不曾接触过WebGL， 是否燃起了对WebGL的热情呢？那么真正的进入正题吧！</p>
+<p>经过前面课程的了解， 也许你已经会使用WebGL做简单的图像处理， 绘制一些简单的图样， 或者用矩阵模拟简单的伪3d。 到了本章， 就要充分利用矩阵相关的知识了。</p>
+<p>由于我本人偷懒， 这个demo直接用了之前封装过的WGE写的， 所以这里必须介绍一下WGE了</p>
+<p>如果你到<a href="https://github.com/wysaid/WebGL-Lessons">github下载本章教程</a>你会发现lesson8目录下有一个WGE目录， 这个目录里面存放了七个文件， 代码都是比较工整的， 也比较简洁， 需要你去看一下哦， 因为我太懒了， 所以……就不一一解释了</p>
+<p>本章用到的最重要的就是<font color="red">wgeScene.js</font>这个文件了， 所以我只讲一下这个文件</p>
+该文件内容如下：
+
+<h4>文件分割线 开始</h4>
+
+<pre>
+"use strict";
+/*
+ * wgeScene.js
+ *
+ *  Created on: 2014-8-13
+ *      Author: Wang Yang
+ *        blog: http://blog.wysaid.org
+ */
+
+ /*
+     简介： wgeScene提供WebGL场景漫游。
+ */
+
+//WGE.SceneInterface 并不提供多余的渲染方式等，仅维护模型视点矩阵以及投影矩阵
+//所有的Sprite或者其他东西只要在WGE.Scene提供的世界观基础上变换，
+//可保证整个世界的一致性。
+
+//默认使用透视投影，如果需要平行投影请自己
+//更多动作如跳跃等请继承此类实现。
+
+//特别注意！ wgeScene 使用 xOy 平面作为漫游地面！z正方向为向上方向
+WGE.SceneInterface = WGE.Class(
+{
+	modelViewMatrix : null, //4x4 模型视点矩阵
+	projectionMatrix : null, //4x4 投影矩阵
+
+	eye : null,    // 当前视点位置(Vec3)。 默认(0, 0, 0)
+
+	// lookDir 为观测方向，默认(0, 1, 0)，x,y两个分量的模为1。 注： 不是观测位置。
+	// 如果需要手动修改lookDir 请保证dirLen大小与dir的x，y两个分量的模相等, 否则将影响移动速度。
+	lookDir : null,
+	dirLen : 1000,
+
+	fovyRad : Math.PI/3,  //视景体的视野的角度（弧度）
+	zNear : 1.0,          //透视投影近裁剪面
+	zFar : 10000.0,       //透视投影远裁剪面
+
+	initialize : function(w, h)
+	{
+		this.eye = new WGE.Vec3(0, 0, 0);
+		this.lookDir = new WGE.Vec3(0, 1000, 0);
+		this.updateView();
+		if(!(w && h))
+		{
+			w = 800;
+			h = 600;
+		}
+		this.resize(w, h);
+	},
+
+	//如果有任何移动旋转或者调整视野操作，
+	//之后必须调用updateView 函数 更新模型视点矩阵
+	updateView : function()
+	{
+		var eye = this.eye.data, lookDir = this.lookDir.data;
+		var centerX = eye[0] + lookDir[0], centerY = eye[1] + lookDir[1];
+		var len = Math.sqrt(centerX*centerX + centerY*centerY);
+		var tmp = -lookDir[2] / len;
+		var dirBackX = centerX * tmp, dirBackY = centerY * tmp;
+		this.modelViewMatrix = WGE.makeLookAt(eye[0], eye[1], eye[2], centerX, centerY, lookDir[2], dirBackX, dirBackY, len);
+	},
+
+	//向右转（弧度）， 负值将向左转.
+	turnRight : function(rad)
+	{
+		var d = this.lookDir.data;
+		var v = WGE.mat2MulVec2(WGE.mat2Rotation(rad), this.lookDir).data;
+		d[0] = v[0];
+		d[1] = v[1];
+	},
+
+	//向右旋转到（弧度）， 以Y轴正方向为起始方向。
+	turnRightTo : function(rad)
+	{
+		var d = this.lookDir.data;
+		var v = WGE.mat2MulVec2(WGE.mat2Rotation(rad), new WGE.Vec3(0, 1, 0)).data;
+		d[0] = v[0];
+		d[1] = v[1];
+	},
+
+	//向上观察， motion计算关系：
+	//向上弧度计算公式为 arctan(tan("当前向上弧度") + motion) - "当前向上弧度"
+	lookUp : function(motion)
+	{
+		this.lookDir.data[2] += motion * this.dirLen;
+		var lookUpMax = this.dirLen * 3.732; //tan(PI / 75);
+		if(this.lookDir.data[2] > lookUpMax) 
+		this.lookDir.data[2] = lookUpMax;
+		else if(this.lookDir.data[2] < -lookUpMax)
+			this.lookDir.data[2] = -lookUpMax;
+	},
+
+	//向上观察到（弧度），直接仰视到所看弧度
+	//范围[-PI/2.4, PI/2.4] ，约正负75度角
+	lookUpTo : function(rad)
+	{
+		if(rad > Math.PI / 2.4)
+			rad = Math.PI / 2.4;
+		else if(rad < -Math.PI / 2.4)
+			rad = -Math.PI / 2.4;
+		this.lookDir.data[2] = Math.tan(rad) * this.dirLen;
+	},
+
+	//视野角度（弧度）， 
+	lookIn : function(rad)
+	{
+		this.fovyRad += rad;
+		if(this.fovyRad < Math.PI / 10)
+			this.fovyRad = Math.PI / 10;
+		else if(this.fovyRad > Math.PI / 2.4)
+			this.fovyRad = Math.PI / 2.4;
+	},
+
+	//视野角度， 范围[PI/10, PI/2.4]
+	lookInTo : function(rad)
+	{
+		if(rad < Math.PI / 10)
+			rad = Math.PI / 10;
+		else if(rad > Math.PI / 2.4)
+			rad = Math.PI / 2.4;
+		this.fovyRad = rad;
+	},
+
+	//向前移动
+	goForward : function(motion)
+	{
+		var m = motion / this.dirLen;
+		this.eye.data[0] += this.lookDir.data[0] * m;
+		this.eye.data[1] += this.lookDir.data[1] * m;
+	},
+
+	//向后移动
+	goBack : function(motion)
+	{
+		var m = motion / this.dirLen;
+		this.eye.data[0] -= this.lookDir.data[0] * m;
+		this.eye.data[1] -= this.lookDir.data[1] * m;
+	},
+
+	//向左移动
+	goLeft : function(motion)
+	{
+		var m = motion / this.dirLen;
+		this.eye.data[0] -= this.lookDir.data[1] * m;
+		this.eye.data[1] += this.lookDir.data[0] * m;
+	},
+
+	//向右移动
+	goRight : function(motion)
+	{
+		var m = motion / this.dirLen;
+		this.eye.data[0] += this.lookDir.data[1] * m;
+		this.eye.data[1] -= this.lookDir.data[0] * m;
+	},
+
+	//默认透视投影
+	resize : function(w, h)
+	{
+		this.projectionMatrix = WGE.makePerspective(this.fovyRad, w / h, this.zNear, this.zFar);
+	}
+
+});
+</pre>
+
+<h4>文件分割线 完</h4>
+<p>你可以看到， 本文件定义了一个场景漫游接口， 使用 xOy 平面作为漫游地面！z正方向为向上方向， 默认分辨率大小为800*600， 如果想改变这个分辨率需要自己传入分辨率大小， 当场景大小有变化的时候也需要手动调用resize修改场景大小。 如果不想使用透视投影， 则需要重写本类， 覆盖这个resize方法</p>
+<p>wgeScene提供了简单的场景漫游矩阵运算， 上面注释都写的很清楚， 我就不罗嗦了(其实还是偷懒吧……大概）</p>
+<p>下面的一些描述并不专业， 也不一定准确， 只是按个人理解口头描述一下， 觉得有什么地方写错了希望多多包涵， 给我发个邮件， 以便于我更正， thanks</p>
+<p>场景漫游需要一个全局的模型视点矩阵， 和一个投影矩阵, 其他需要保存的还有：</p>
+
+<p><font color="blue"><b>视点位置</b></font>: 就是场景漫游中， 你 “自己”所在的位置， 通常这个位置并不是你场景中“角色”所在的位置（这个后面有机会再说吧）， 而是一个假想的屏幕前的你， 所在的位置（如果是FPS游戏或者启用角色视角之类的话， 那么角色所在的位置和“你”的位置就都是这个）， 这个变量这里用一个vec3表示， 本次demo中使用w,a,s,d即可移动视点在xOy平面上的位置， 通过空格键即可控制跳跃（视点的z值)</p>
+
+<p><font color="blue"><b>观测方向</b></font>: 在三维坐标平面， 你在某个位置， 你要看到东西， 你还需要有个观测方向， 比如你是向上看的， 还是向前后左右看的， 抑或是向下看的。这个方向也用一个vec3表示（这个一定表示的是假想的屏幕前的“你”的观测方向。 比如你玩某些3d网游的时候， 可以看大角色是朝向前方， 但是角色不用转身， 你一样可以调整视角观察到角色身后的东西）</p>
+
+<p><font color="blue"><b>观测向上方向</b></font>: 这只是一个辅助值， 用以确定你观察的方向。 <b><font color="red">假如你在某点 (x0,y0,z0)， 观察点为(x1,y1,z1)， 假设这个点上的物体为一个电视， 你站着看到正确的图像， ok。 但是你还可以躺着看， 这时候你看到的电视是横着的， 你还可以倒立着看， 对吧。 那么你看到的电视就是倒着的了。 而你自己的位置和观测点的位置没有任何变化， 变化的只是你观测时选择的向上方向</font></b>（为什么叫“向上方向”呢， 因为OpenGL默认使用向上方向来定下这个变化， 如果当初制定标准时选择左右或者下都是没问题的， 既然标准如此， 我们就选择向上吧！) 在这里， <font color="green"><b>我们选择的向上方向当然为xOy平面的上方， 当你平视前方的时候， 这个值为z轴的正方向。 当你抬头仰视或者俯视的时候， 这个值必须通过仰角计算出来。</b></font> 具体如何做你可以看看 wgeScene.js里面的 lookup函数和updateView 函数的简单实现。 还需要你努力去理解 @_@ </p>
+
+<p><font color="blue"><b>模型视点矩阵</b></font>: 本demo使用仿 gluLookAt的方法实现， 将前面说到的信息汇总为一个模型视点矩阵， 具体参见 wgeScene.js 里面的updateView 函数。最重要的一步就是我们必须要通过视点位置与观测点位置形成的方向向量， 计算出两点之间基于xOy平面的仰角， 然后算出向上的仰望方向， 否则无法实现俯仰观测</p>
+
+<p><font color="blue"><b>透视投影</b></font>: 基本不用考虑平行投影了， 除非你只是展示一个模型而不是以类似于游戏的形式漫游场景。 本次demo用的是仿gluPerspective的方法实现， 可以参见 wgeScene.js 的resize 函数， 其中远裁剪面使用了一个较大的值， 然后视野角度作为变量存在， 这个"视野角度"(我也不知道是不是该这么叫)的作用可以比喻为一个望远镜， 通过改变"视野角度"， 可以让我们以远近不同的方式观察物体， 就像我们用望远镜观察远处的物体一样。 这个比喻比较扯淡，但是一般人比较好理解。实际理论应该类似于凸透镜成像， 不同度数（曲率）的凸透镜成清晰像的大小是不同的， 在可视区域看到的成像就有了大小或者说远近的感觉。 好吧， 就当我在扯淡</p>
+
+<p>最后， 使用模型视点矩阵<b><font color="red">左乘</font></b>投影矩阵， 便得到了我们的ModelViewProjection(mvp)矩阵了， 将mvp应用到整个场景的变化中， 我们就可以进行本次的场景漫游了！</p>
+
+<input type="button" value="点击查看完整demo" title="查看代码" onclick="window.open('demo_scene_roaming.html', '_blank', 'toolbar=no,scrollbars=yes, resizable=yes, location=no, status=no')" style="width:200px;height:50px;">
+
+<br>
+<p>好的， 本次讲解比较简单， 但是如果你是初学者的话， 需要理解的东西还是蛮多的， 如果你想学， 又觉得本次的代码比较坑， 就……在心里默默数神兽某马吧~呼呼</p>
+<p>第八期教程到此为止，请关注lesson 9。系列教程地址: http://webgl-lesson.wysaid.org</p>
 </body>
 </html>
