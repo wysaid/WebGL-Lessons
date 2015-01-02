@@ -434,6 +434,8 @@ var MyGUI = WGE.Class(WGE.GUIInterface, WGE.SceneInterface,
 	{
 		this.lookIn(delta > 0 ? 0.1 : -0.1);
 		this.resize(this.canvas.width, this.canvas.height);
+		e.stopPropagation();
+		e.preventDefault();
 	},
 
 	resizeEvent : function()
