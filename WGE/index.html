@@ -1,13 +1,161 @@
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8">
-<title>WGE for webgl - demo list</title>
-</head>
+<title>WGE (Web Graphics Engine)</title>
+<script type="text/javascript" src="wgeCore.js"></script>
+<style type="text/css">
+div {
+	border: groove;
+}
 
-<body style="font-family:微软雅黑;">
-<h1>简介</h1>
-<p>WGE是一个基于WebGL + Javascript的小lib，将提供便捷的2d和3d小游戏框架支持。目前处于开发阶段。作者精力有限，不确定会不会太监，请慎用。但是你可以将WGE作为你自己应用的参考。作者水平也有限，如果发现不科学的地方请不吝赐教，邮箱： admin@wysaid.org</p>
-<h1>请在下方列表选择:</h1>
-<h3>1. <a href="simpleDemo.html" target="_blank">simpleDemo</a>简单demo测试</h3>
+#globalView {
+	width: 80%;
+	min-width: 800px;
+	height: auto;
+	min-height: 600px;
+	margin: 0px auto;
+}
+
+#logoBar {
+	width: auto;
+	height: 80px;
+}
+
+#navContainer {
+	width: auto;
+	height: 32px;
+	margin: 5px 5px;
+}
+
+#navContainer ul {
+	font: 20px verdana, arial, 宋体;
+	font-weight: bold;
+	list-style: none;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;	
+}
+
+#navContainer ul li{
+	float: left;
+	width: 100px;
+	margin: 4px 0 0 16px;
+	background-color: #ddd;
+	display: list-item;
+	text-align: center;
+	background-color: #235a83;
+}
+
+#navContainer a {
+	color: #ddd;
+}
+
+#contentContainer {
+	width: 100%;
+	height: auto;
+	position: relative;
+}
+
+#content {
+	position: relative;
+	width: 80%;
+	min-height: 600px;
+	height: auto;
+	margin-left: 2px;
+	background-color: #ddd;
+}
+
+#content img {
+	width: 98%;
+	height: auto;
+	margin: auto;
+}
+
+#infoBar {
+	position: absolute;
+	width: 18%;
+	left: 80%;
+	top: 0;
+	margin-right: 1%;
+	min-height: 600px;
+}
+
+</style>
+<script type="text/javascript">
+
+function contentUpdate(contentID, url)
+{
+	WGE.requestTextByURL(url, function(text, reqXHR){
+		var content = WGE.ID(contentID);
+		content.innerHTML = text;
+	});
+}
+
+</script>
+</head>
+<body>
+<div id="globalView">
+<div id="logoBar">
+<a href="index.html"><img src="logo.png" style="margin:auto auto auto 10px;"></a></div>
+
+<div id="navContainer">
+<script type="text/javascript">
+var navContainer = WGE.ID("navContainer");
+var navUL = WGE.CE("ul");
+navContainer.appendChild(navUL);
+
+//ajax 更新content
+var li = 
+{
+	"首页" : "./index.html",
+	"简介" : "javascript:contentUpdate('content', 'about.html')",
+	"文档" : "./man/index.html",
+	"下载" : "http://github.com/wysaid/wge",
+	"范例" : "javascript:alert('暂无')"
+}
+
+for(var i in li)
+{
+	var element = WGE.CE('li');
+	element.setAttribute("style", "");
+	element.innerHTML = '<a href="' + li[i] + '">' + i + '</a>';
+	navUL.appendChild(element);
+}
+</script>
+</div>
+<div id="contentContainer">
+<div id="content">
+<div style="margin:10px 10px">
+<p>WGE (Web Graphics Engine) 是一个基于Web平台的图形引擎。主要使用js, canvas 2d, canvas webgl开发</p>
+<p>WGE 目前主要定位为一个简单易用，快速上手，并能够加快web应用开发的框架库</p>
+</div>
+<div style="margin:10px 10px">
+<p>2d版： 暂停github更新。</p>
+<p>GUI测试： <a href="./2d/gui_test/index.html" target="_blank">canvas-2d GUI测试页面</a></p>
+<h2>2d 版移入bitbucket，停止github上的更新。</h2>
+<p><b>^_^ 你可以看看WebGL版~</b></p>
+</div>
+
+<div style="margin:10px 10px">
+<p>webgl版： 编写中</p>
+<p>GUI测试： <a href="./webgl/simple_demos/index.html" target="_blank">canvas-webgl GUI测试页面</a></p>
+<h2>慎用WGE</h2>
+<p>开发者以外的个人最好将WGE作为学习使用</p>
+
+</div>
+</div>
+<div id="infoBar">
+<div style="width:98%;height:100px;">
+<p>WGE正在建设中！</p>
+</div>
+<div style="width:98%;height:100px;">
+<p>当前版本: 0.0.1</p>
+</div>
+<div style="width:98%;height:100px;">
+<p>联系我: <a href="mailto:admin@wysaid.org?subject=To_WGE&body=About_WGE" target="_blank">请点击</a></p>
+</div>
+</div>
+</div>
+</div>
 </body>
 </html>

@@ -1,0 +1,20 @@
+/*
+ * wgeSprite2d.fsh
+ *
+ *  Created on: 2014-8-6
+ *      Author: Wang Yang
+ *        Blog: http://blog.wysaid.org
+ */
+
+precision mediump float;
+varying vec2 vTextureCoord;
+uniform sampler2D sTexture;
+uniform float alpha;
+uniform vec3 blendColor;
+
+void main()
+{
+	gl_FragColor = texture2D(sTexture, vTextureCoord);
+	gl_FragColor.a *= alpha;
+	gl_FragColor.rgb *= gl_FragColor.a * blendColor;
+}
