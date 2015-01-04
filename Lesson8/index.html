@@ -116,7 +116,8 @@ WGE.SceneInterface = WGE.Class(
 		var len = Math.sqrt(centerX*centerX + centerY*centerY);
 		var tmp = -lookDir[2] / len;
 		var dirBackX = centerX * tmp, dirBackY = centerY * tmp;
-		this.modelViewMatrix = WGE.makeLookAt(eye[0], eye[1], eye[2], centerX, centerY, lookDir[2], dirBackX, dirBackY, len);
+		this.modelViewMatrix = 
+		    WGE.makeLookAt(eye[0], eye[1], eye[2], centerX, centerY, lookDir[2], dirBackX, dirBackY, len);
 	},
 
 	//向右转（弧度）， 负值将向左转.
