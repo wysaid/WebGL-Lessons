@@ -15,7 +15,7 @@
             var lessonObj = document.getElementById("lessonView");
             for(var i = 1; i <= gLessonCnt; ++i)
             {
-                var item = document.createElement("p");
+                var item = document.createElement("div");
                 var text = "<h2><a href = './Lesson" + i + "/index.html' target='lessons'>Lesson " + i + "</a></h2>";
                 item.setAttribute("style", "text-align:left;background-color: #abcdef; margin 10px;");
                 item.innerHTML = text;
